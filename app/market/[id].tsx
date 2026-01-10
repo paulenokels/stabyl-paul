@@ -57,7 +57,7 @@ export default function MarketDetailScreen() {
     
     try {
       const markets = await getMarketsWithPrice();
-      const foundMarket = markets.find(m => m.marketId === id);
+      const foundMarket = markets.find(m => m.id === id);
       if (foundMarket) {
         setMarket(foundMarket);
       }
@@ -116,7 +116,7 @@ export default function MarketDetailScreen() {
     if (!market) return;
     
     try {
-      await toggleFavorite(market.marketId);
+      await toggleFavorite(market.id);
       await loadMarket();
     } catch (error) {
       console.error('Error toggling favorite:', error);
@@ -177,7 +177,7 @@ export default function MarketDetailScreen() {
         
         <View style={styles.headerContent}>
           <Typography type="title" style={styles.marketTitle}>
-            {market.marketId}
+            {market.id}
           </Typography>
           <Typography style={styles.marketPair}>
             {market.base}/{market.quote}

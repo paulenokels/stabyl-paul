@@ -1,10 +1,10 @@
-import { getDatabase } from '@/database';
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
+import { getDatabase } from '@/database';
+import { loadStreamFile, type StreamEvent } from '@/services/streamLoader';
 import { theme } from '@/theme/theme';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
-import { loadStreamFile, type StreamEvent } from '@/services/streamLoader';
 
 export type PlaybackStatus = 'idle' | 'playing' | 'paused' | 'finished';
 
@@ -53,7 +53,7 @@ export function MarketStreamPlayer({
           if (event.size === 0) {
             // Remove the level
             await database.runAsync(
-              'DELETE FROM order_book_levels WHERE market = ? AND side = ? AND price = ?',
+              'DELETE FROM orderBookLevels WHERE marketId = ? AND side = ? AND price = ?',
               event.market,
               event.side,
               event.price
@@ -61,7 +61,7 @@ export function MarketStreamPlayer({
           } else {
             // Insert or update the level
             await database.runAsync(
-              'INSERT INTO order_book_levels (market, side, price, size) VALUES (?, ?, ?, ?) ON CONFLICT(market, side, price) DO UPDATE SET size = excluded.size',
+              'INSERT INTO orderBookLevels (marketId, side, price, size) VALUES (?, ?, ?, ?) ON CONFLICT(marketId, side, price) DO UPDATE SET size = excluded.size',
               event.market,
               event.side,
               event.price,
@@ -71,7 +71,7 @@ export function MarketStreamPlayer({
         } else if (event.type === 'trade') {
           // Insert new trade (ignore duplicates)
           await database.runAsync(
-            'INSERT OR IGNORE INTO trades (trade_id, market, price, size, side, ts) VALUES (?, ?, ?, ?, ?, ?)',
+            'INSERT OR IGNORE INTO trades (id, marketId, price, size, side, ts) VALUES (?, ?, ?, ?, ?, ?)',
             event.tradeId,
             event.market,
             event.price,

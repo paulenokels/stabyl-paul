@@ -1,7 +1,10 @@
 import assets from '@/data/seed/assets.json';
 import balances from '@/data/seed/balances.json';
 import markets from '@/data/seed/markets.json';
-import type { Asset, Balance, Market, Trade } from '@/interfaces/database';
+import orderBookUSDC from '@/data/seed/orderbooks/USDC-NGN.json';
+import orderBookUSDT from '@/data/seed/orderbooks/USDT-NGN.json';
+import tradesUSDC from '@/data/seed/trades/USDC-NGN.json';
+import tradesUSDT from '@/data/seed/trades/USDT-NGN.json';
 import { getDatabase } from './index';
 
 /**
@@ -31,18 +34,14 @@ export async function seedDatabase(): Promise<void> {
   }
   const database = await getDatabase();
   
-  // Import seed data files
-  const marketsData = markets as Market[];
-  const assetsData = assets as Asset[];
-  const balancesData = balances as Balance[];
   
   // Use transaction for atomicity
   try {
     await database.execAsync('BEGIN TRANSACTION');
     // Insert markets
-    for (const market of marketsData) {
+    for (const market of markets) {
       await database.runAsync(
-        'INSERT INTO markets (market_id, base, quote, tick_size, min_order_size, initial_last_price, initial_change_24h) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO markets (id, base, quote, tickSize, minOrderSize, initialLastPrice, initialChange24h) VALUES (?, ?, ?, ?, ?, ?, ?)',
         market.marketId,
         market.base,
         market.quote,
@@ -54,9 +53,9 @@ export async function seedDatabase(): Promise<void> {
     }
     
     // Insert assets
-    for (const asset of assetsData) {
+    for (const asset of assets) {
       await database.runAsync(
-        'INSERT INTO assets (asset_id, decimals, description) VALUES (?, ?, ?)',
+        'INSERT INTO assets (id, decimals, description) VALUES (?, ?, ?)',
         asset.assetId,
         asset.decimals,
         asset.description
@@ -64,33 +63,30 @@ export async function seedDatabase(): Promise<void> {
     }
     
     // Insert balances
-    for (const balance of balancesData) {
+    for (const balance of balances) {
       await database.runAsync(
-        'INSERT INTO balances (asset, available, locked) VALUES (?, ?, ?)',
+        'INSERT INTO balances (assetId, available, locked) VALUES (?, ?, ?)',
         balance.asset,
         balance.available,
         balance.locked
       );
     }
-    
-    // Insert order book snapshots
-    const orderBookDataUSDC = require('../../data/seed/orderbooks/USDC-NGN.json') as { market: string; bids: [number, number][]; asks: [number, number][] };
-    const orderBookDataUSDT = require('../../data/seed/orderbooks/USDT-NGN.json') as { market: string; bids: [number, number][]; asks: [number, number][] };
+  
     
     // Insert USDC-NGN order book
-    for (const [price, size] of orderBookDataUSDC.bids) {
+    for (const [price, size] of orderBookUSDC.bids) {
       await database.runAsync(
-        'INSERT INTO order_book_levels (market, side, price, size) VALUES (?, ?, ?, ?)',
-        orderBookDataUSDC.market,
+        'INSERT INTO orderBookLevels (marketId, side, price, size) VALUES (?, ?, ?, ?)',
+        orderBookUSDC.market,
         'bid',
         price,
         size
       );
     }
-    for (const [price, size] of orderBookDataUSDC.asks) {
+    for (const [price, size] of orderBookUSDC.asks) {
       await database.runAsync(
-        'INSERT INTO order_book_levels (market, side, price, size) VALUES (?, ?, ?, ?)',
-        orderBookDataUSDC.market,
+        'INSERT INTO orderBookLevels (marketId, side, price, size) VALUES (?, ?, ?, ?)',
+        orderBookUSDC.market,
         'ask',
         price,
         size
@@ -98,33 +94,31 @@ export async function seedDatabase(): Promise<void> {
     }
     
     // Insert USDT-NGN order book
-    for (const [price, size] of orderBookDataUSDT.bids) {
+    for (const [price, size] of orderBookUSDT.bids) {
       await database.runAsync(
-        'INSERT INTO order_book_levels (market, side, price, size) VALUES (?, ?, ?, ?)',
-        orderBookDataUSDT.market,
+        'INSERT INTO orderBookLevels (marketId, side, price, size) VALUES (?, ?, ?, ?)',
+        orderBookUSDT.market,
         'bid',
         price,
         size
       );
     }
-    for (const [price, size] of orderBookDataUSDT.asks) {
+    for (const [price, size] of orderBookUSDT.asks) {
       await database.runAsync(
-        'INSERT INTO order_book_levels (market, side, price, size) VALUES (?, ?, ?, ?)',
-        orderBookDataUSDT.market,
+        'INSERT INTO orderBookLevels (marketId, side, price, size) VALUES (?, ?, ?, ?)',
+        orderBookUSDT.market,
         'ask',
         price,
         size
       );
     }
     
-    // Insert initial trades
-    const tradesDataUSDC = require('../../data/seed/trades/USDC-NGN.json') as Trade[];
-    const tradesDataUSDT = require('../../data/seed/trades/USDT-NGN.json') as Trade[];
+      // Insert initial trades
     
     // Insert USDC-NGN trades
-    for (const trade of tradesDataUSDC) {
+    for (const trade of tradesUSDC) {
       await database.runAsync(
-        'INSERT OR IGNORE INTO trades (trade_id, market, price, size, side, ts) VALUES (?, ?, ?, ?, ?, ?)',
+        'INSERT OR IGNORE INTO trades (id, marketId, price, size, side, ts) VALUES (?, ?, ?, ?, ?, ?)',
         trade.tradeId,
         trade.market,
         trade.price,
@@ -135,9 +129,9 @@ export async function seedDatabase(): Promise<void> {
     }
     
     // Insert USDT-NGN trades
-    for (const trade of tradesDataUSDT) {
+    for (const trade of tradesUSDT) {
       await database.runAsync(
-        'INSERT OR IGNORE INTO trades (trade_id, market, price, size, side, ts) VALUES (?, ?, ?, ?, ?, ?)',
+        'INSERT OR IGNORE INTO trades (id, marketId, price, size, side, ts) VALUES (?, ?, ?, ?, ?, ?)',
         trade.tradeId,
         trade.market,
         trade.price,

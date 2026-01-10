@@ -16,35 +16,35 @@ export async function getMarketsWithPrice(): Promise<MarketWithPrice[]> {
   // Get all markets with their last trade price and initial change
   const markets = await database.getAllAsync<Market & { lastPrice: number | null; change24h: number }>(`
     SELECT 
-      m.market_id as marketId,
+      m.id as id,
       m.base,
       m.quote,
-      m.tick_size as tickSize,
-      m.min_order_size as minOrderSize,
-      m.initial_last_price as initialLastPrice,
-      m.initial_change_24h as initialChange24h,
+      m.tickSize,
+      m.minOrderSize,
+      m.initialLastPrice,
+      m.initialChange24h,
       COALESCE((
         SELECT price 
         FROM trades 
-        WHERE market = m.market_id 
+        WHERE marketId = m.id 
         ORDER BY ts DESC 
         LIMIT 1
-      ), m.initial_last_price) as lastPrice,
-      m.initial_change_24h as change24h
+      ), m.initialLastPrice) as lastPrice,
+      m.initialChange24h as change24h
     FROM markets m
-    ORDER BY m.market_id
+    ORDER BY m.id
   `);
   
   // Get favorites
-  const favorites = await database.getAllAsync<{ market_id: string }>(`
-    SELECT market_id FROM favorites
+  const favorites = await database.getAllAsync<{ marketId: string }>(`
+    SELECT marketId FROM favorites
   `);
   
-  const favoriteSet = new Set(favorites.map(f => f.market_id));
+  const favoriteSet = new Set(favorites.map(f => f.marketId));
   
   return markets.map(market => ({
     ...market,
-    isFavorite: favoriteSet.has(market.marketId),
+    isFavorite: favoriteSet.has(market.id),
   }));
 }
 
@@ -55,18 +55,18 @@ export async function toggleFavorite(marketId: string): Promise<boolean> {
   const database = await getDatabase();
   
   // Check if already favorite
-  const existing = await database.getFirstAsync<{ market_id: string }>(
-    'SELECT market_id FROM favorites WHERE market_id = ?',
+  const existing = await database.getFirstAsync<{ marketId: string }>(
+    'SELECT marketId FROM favorites WHERE marketId = ?',
     marketId
   );
   
   if (existing) {
     // Remove from favorites
-    await database.runAsync('DELETE FROM favorites WHERE market_id = ?', marketId);
+    await database.runAsync('DELETE FROM favorites WHERE marketId = ?', marketId);
     return false;
   } else {
     // Add to favorites
-    await database.runAsync('INSERT INTO favorites (market_id) VALUES (?)', marketId);
+    await database.runAsync('INSERT INTO favorites (marketId) VALUES (?)', marketId);
     return true;
   }
 }
@@ -77,7 +77,7 @@ export async function toggleFavorite(marketId: string): Promise<boolean> {
 export async function isFavorite(marketId: string): Promise<boolean> {
   const database = await getDatabase();
   const result = await database.getFirstAsync<{ count: number }>(
-    'SELECT COUNT(*) as count FROM favorites WHERE market_id = ?',
+    'SELECT COUNT(*) as count FROM favorites WHERE marketId = ?',
     marketId
   );
   return result?.count && result.count > 0 ? true : false;
@@ -91,7 +91,7 @@ export async function getLastPrice(marketId: string): Promise<number | null> {
   
   // Get the most recent trade price
   const trade = await database.getFirstAsync<{ price: number }>(
-    'SELECT price FROM trades WHERE market = ? ORDER BY ts DESC LIMIT 1',
+    'SELECT price FROM trades WHERE marketId = ? ORDER BY ts DESC LIMIT 1',
     marketId
   );
   
@@ -100,10 +100,10 @@ export async function getLastPrice(marketId: string): Promise<number | null> {
   }
   
   // Fallback to initial price
-  const market = await database.getFirstAsync<{ initial_last_price: number }>(
-    'SELECT initial_last_price FROM markets WHERE market_id = ?',
+  const market = await database.getFirstAsync<{ initialLastPrice: number }>(
+    'SELECT initialLastPrice FROM markets WHERE id = ?',
     marketId
   );
   
-  return market ? market.initial_last_price : null;
+  return market ? market.initialLastPrice : null;
 }

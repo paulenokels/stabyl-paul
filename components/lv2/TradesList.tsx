@@ -83,7 +83,7 @@ export function TradesList({ trades }: TradesListProps) {
         ) : (
           <FlatList
             data={trades}
-            keyExtractor={(item) => item.tradeId}
+            keyExtractor={(item) => item.id}
             renderItem={renderTrade}
             scrollEnabled={true}
             maxToRenderPerBatch={10}

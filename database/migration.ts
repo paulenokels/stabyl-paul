@@ -3,107 +3,107 @@ import { getDatabase } from '.';
 /**
  * Run database migrations
  */
-export async function runMigrations(currentVersion: number): Promise<void> {
+export async function runMigrations(nextVersion: number): Promise<void> {
   // Migration 1: Initial schema
   const database = await getDatabase();
 
-  if (currentVersion === 1) {
+  if (nextVersion === 1) {
     await database.execAsync(`
       -- Schema version tracking
-      CREATE TABLE IF NOT EXISTS schema_version (
+      CREATE TABLE IF NOT EXISTS schemaVersion (
         version INTEGER PRIMARY KEY,
-        applied_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+        appliedAt INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
       );
       
       -- Markets table
       CREATE TABLE IF NOT EXISTS markets (
-        market_id TEXT PRIMARY KEY,
+        id TEXT PRIMARY KEY,
         base TEXT NOT NULL,
         quote TEXT NOT NULL,
-        tick_size REAL NOT NULL,
-        min_order_size REAL NOT NULL,
-        initial_last_price REAL NOT NULL,
-        initial_change_24h REAL NOT NULL
+        tickSize REAL NOT NULL,
+        minOrderSize REAL NOT NULL,
+        initialLastPrice REAL NOT NULL,
+        initialChange24h REAL NOT NULL
       );
       
       -- Assets table
       CREATE TABLE IF NOT EXISTS assets (
-        asset_id TEXT PRIMARY KEY,
+        id TEXT PRIMARY KEY,
         decimals INTEGER NOT NULL,
         description TEXT NOT NULL
       );
       
       -- Balances table
       CREATE TABLE IF NOT EXISTS balances (
-        asset TEXT PRIMARY KEY,
+        assetId TEXT PRIMARY KEY,
         available REAL NOT NULL,
         locked REAL NOT NULL
       );
       
       -- Order book levels table
-      CREATE TABLE IF NOT EXISTS order_book_levels (
+      CREATE TABLE IF NOT EXISTS orderBookLevels (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        market TEXT NOT NULL,
+        marketId TEXT NOT NULL,
         side TEXT NOT NULL CHECK (side IN ('bid', 'ask')),
         price REAL NOT NULL,
         size REAL NOT NULL,
-        UNIQUE(market, side, price),
-        FOREIGN KEY (market) REFERENCES markets(market_id)
+        UNIQUE(marketId, side, price),
+        FOREIGN KEY (marketId) REFERENCES markets(id)
       );
       
-      CREATE INDEX IF NOT EXISTS idx_order_book_market_side ON order_book_levels(market, side);
-      CREATE INDEX IF NOT EXISTS idx_order_book_price ON order_book_levels(price);
+      CREATE INDEX IF NOT EXISTS idxOrderBookMarketSide ON orderBookLevels(marketId, side);
+      CREATE INDEX IF NOT EXISTS idxOrderBookPrice ON orderBookLevels(price);
       
       -- Trades table
       CREATE TABLE IF NOT EXISTS trades (
-        trade_id TEXT PRIMARY KEY,
-        market TEXT NOT NULL,
+        id TEXT PRIMARY KEY,
+        marketId TEXT NOT NULL,
         price REAL NOT NULL,
         size REAL NOT NULL,
         side TEXT NOT NULL CHECK (side IN ('buy', 'sell')),
         ts INTEGER NOT NULL,
-        FOREIGN KEY (market) REFERENCES markets(market_id)
+        FOREIGN KEY (marketId) REFERENCES markets(id)
       );
       
-      CREATE INDEX IF NOT EXISTS idx_trades_market ON trades(market);
-      CREATE INDEX IF NOT EXISTS idx_trades_ts ON trades(ts);
+      CREATE INDEX IF NOT EXISTS idxTradesMarket ON trades(marketId);
+      CREATE INDEX IF NOT EXISTS idxTradesTs ON trades(ts);
 
       -- Favorites table
       CREATE TABLE IF NOT EXISTS favorites (
-        market_id TEXT PRIMARY KEY,
-        created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-        FOREIGN KEY (market_id) REFERENCES markets(market_id)
+        marketId TEXT PRIMARY KEY,
+        createdAt INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+        FOREIGN KEY (marketId) REFERENCES markets(id)
       );
       
-      CREATE INDEX IF NOT EXISTS idx_favorites_market ON favorites(market_id);
+      CREATE INDEX IF NOT EXISTS idxFavoritesMarket ON favorites(marketId);
       
       -- Orders table (user's limit orders)
       CREATE TABLE IF NOT EXISTS orders (
-        order_id TEXT PRIMARY KEY,
-        market TEXT NOT NULL,
+        id TEXT PRIMARY KEY,
+        marketId TEXT NOT NULL,
         side TEXT NOT NULL CHECK (side IN ('buy', 'sell')),
         price REAL NOT NULL,
         amount REAL NOT NULL,
         status TEXT NOT NULL CHECK (status IN ('open', 'cancelled', 'filled')) DEFAULT 'open',
-        created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-        FOREIGN KEY (market) REFERENCES markets(market_id)
+        createdAt INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+        FOREIGN KEY (marketId) REFERENCES markets(id)
       );
       
-      CREATE INDEX IF NOT EXISTS idx_orders_market ON orders(market);
-      CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
-      CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+      CREATE INDEX IF NOT EXISTS idxOrdersMarket ON orders(marketId);
+      CREATE INDEX IF NOT EXISTS idxOrdersStatus ON orders(status);
+      CREATE INDEX IF NOT EXISTS idxOrdersCreatedAt ON orders(createdAt);
       
       -- Preferences table (user preferences)
       CREATE TABLE IF NOT EXISTS preferences (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL,
-        updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+        updatedAt INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
       );
       
-      CREATE INDEX IF NOT EXISTS idx_preferences_key ON preferences(key);
+      CREATE INDEX IF NOT EXISTS idxPreferencesKey ON preferences(key);
       
-      -- Insert schema version
-      INSERT INTO schema_version (version) VALUES (1);
+      -- Insert schema version (only if it doesn't exist)
+      INSERT OR IGNORE INTO schemaVersion (version) VALUES (1);
     `);
   }
   

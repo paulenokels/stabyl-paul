@@ -26,7 +26,7 @@ export function OrderBook({ bids, asks }: OrderBookProps) {
 
   const renderBid = ({ item }: { item: OrderBookLevel }) => (
     <View style={styles.row}>
-      <Typography style={[styles.price, { color: '#00C853' }]}>
+      <Typography style={[styles.price, { color: theme.successColor }]}>
         {formatPrice(item.price)}
       </Typography>
       <Typography style={styles.size}>

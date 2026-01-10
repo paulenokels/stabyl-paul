@@ -1,6 +1,7 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
 import { MarketListItem } from '@/components/lv2/MarketListItem';
+import { MarketStreamPlayer } from '@/components/lv3/MarketStreamPlayer';
 import type { MarketWithPrice } from '@/database/repositories/markets';
 import { getMarketsWithPrice, toggleFavorite } from '@/database/repositories/markets';
 import { theme } from '@/theme/theme';
@@ -68,15 +69,19 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <Typography type="title" style={styles.title}>Markets</Typography>
       </View>
+
+      <View>
+        <MarketStreamPlayer />
+      </View>
       
       <FlatList
         data={markets}
-        keyExtractor={(item) => item.marketId}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <MarketListItem
             market={item}
-            onPress={() => handleMarketPress(item.marketId)}
-            onFavoriteToggle={() => handleFavoriteToggle(item.marketId)}
+            onPress={() => handleMarketPress(item.id)}
+            onFavoriteToggle={() => handleFavoriteToggle(item.id)}
           />
         )}
         refreshControl={

@@ -1,23 +1,25 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
+import { Market, Order } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
 import { useState } from 'react';
-import { Alert, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { Alert, StyleSheet, TextInput } from 'react-native';
+import { PrimaryButton } from './Buttons';
 
 interface OrderFormProps {
-  markets: Array<{ marketId: string; base: string; quote: string }>;
-  onSubmit: (market: string, side: 'buy' | 'sell', price: number, amount: number) => Promise<void>;
+  markets: Array<Market>;
+  onSubmit: (order: Omit<Order, 'id' | 'createdAt'>) => Promise<void>;
 }
 
 export function OrderForm({ markets, onSubmit }: OrderFormProps) {
-  const [selectedMarket, setSelectedMarket] = useState(markets[0]?.marketId || '');
+  const [selectedMarketId, setSelectedMarketId] = useState(markets[0]?.id || '');
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [price, setPrice] = useState('');
   const [amount, setAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
-    if (!selectedMarket) {
+    if (!selectedMarketId) {
       Alert.alert('Error', 'Please select a market');
       return;
     }
@@ -37,7 +39,13 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
 
     setIsSubmitting(true);
     try {
-      await onSubmit(selectedMarket, side, priceNum, amountNum);
+      await onSubmit({
+        marketId: selectedMarketId,
+        side,
+        price: priceNum,
+        amount: amountNum,
+        status: 'open',
+      });
       // Reset form
       setPrice('');
       setAmount('');
@@ -49,7 +57,7 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
     }
   };
 
-  const selectedMarketData = markets.find(m => m.marketId === selectedMarket);
+  const selectedMarketData = markets.find(m => m.id === selectedMarketId);
 
   return (
     <View style={styles.container}>
@@ -60,63 +68,35 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
         <Typography style={styles.label}>Market</Typography>
         <View style={styles.marketButtons}>
           {markets.map(market => (
-            <TouchableOpacity
-              key={market.marketId}
-              style={[
+           <PrimaryButton key={market.id}
+            style={[
                 styles.marketButton,
-                selectedMarket === market.marketId && styles.marketButtonActive,
-              ]}
-              onPress={() => setSelectedMarket(market.marketId)}
-            >
-              <Typography
-                style={[
-                  styles.marketButtonText,
-                  selectedMarket === market.marketId && styles.marketButtonTextActive,
-                ]}
-              >
-                {market.marketId}
-              </Typography>
-            </TouchableOpacity>
-          ))}
+                selectedMarketId === market.id && styles.marketButtonActive,
+            ]}
+            typographyStyle={market.id && styles.marketButtonTextActive}
+            onPress={() => setSelectedMarketId(market.id)} text={market.id} />
+            ))}
+          
         </View>
       </View>
-
+      
       {/* Side Selection */}
       <View style={styles.section}>
         <Typography style={styles.label}>Side</Typography>
         <View style={styles.sideButtons}>
-          <TouchableOpacity
-            style={[
-              styles.sideButton,
-              side === 'buy' && styles.sideButtonBuy,
-            ]}
-            onPress={() => setSide('buy')}
-          >
-            <Typography
-              style={[
-                styles.sideButtonText,
-                side === 'buy' && styles.sideButtonTextActive,
+            <PrimaryButton style={[
+                styles.sideButton,
+                side === 'buy' && styles.sideButtonBuy,
               ]}
-            >
-              Buy
-            </Typography>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.sideButton,
-              side === 'sell' && styles.sideButtonSell,
-            ]}
-            onPress={() => setSide('sell')}
-          >
-            <Typography
-              style={[
-                styles.sideButtonText,
-                side === 'sell' && styles.sideButtonTextActive,
+              typographyStyle={side === 'buy' && styles.sideButtonTextActive}
+              onPress={() => setSide('buy')} text="Buy" />
+          <PrimaryButton style={[
+                styles.sideButton,
+                side === 'sell' && styles.sideButtonSell,
               ]}
-            >
-              Sell
-            </Typography>
-          </TouchableOpacity>
+              typographyStyle={side === 'sell' && styles.sideButtonTextActive}
+              onPress={() => setSide('sell')} text="Sell" />
+          
         </View>
       </View>
 
@@ -151,19 +131,11 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
       </View>
 
       {/* Submit Button */}
-      <TouchableOpacity
-        style={[
-          styles.submitButton,
-          side === 'buy' ? styles.submitButtonBuy : styles.submitButtonSell,
-          isSubmitting && styles.submitButtonDisabled,
-        ]}
+      <PrimaryButton
         onPress={handleSubmit}
         disabled={isSubmitting}
-      >
-        <Typography style={styles.submitButtonText}>
-          {isSubmitting ? 'Placing Order...' : 'Place Order'}
-        </Typography>
-      </TouchableOpacity>
+        text={isSubmitting ? 'Placing Order...' : 'Place Order'}
+      />
     </View>
   );
 }

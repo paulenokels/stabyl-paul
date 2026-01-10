@@ -8,7 +8,7 @@ export async function getBalances(): Promise<Balance[]> {
   const database = await getDatabase();
   
   const balances = await database.getAllAsync<Balance>(
-    `SELECT asset, available, locked FROM balances ORDER BY asset`
+    `SELECT * FROM balances ORDER BY assetId`
   );
   
   return balances;
@@ -35,9 +35,9 @@ export async function setPreference(key: string, value: string): Promise<void> {
   const database = await getDatabase();
   
   await database.runAsync(
-    `INSERT INTO preferences (key, value, updated_at) 
+    `INSERT INTO preferences (key, value, updatedAt) 
      VALUES (?, ?, ?) 
-     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updatedAt = excluded.updatedAt`,
     key,
     value,
     Date.now()
@@ -48,7 +48,7 @@ export async function setPreference(key: string, value: string): Promise<void> {
  * Get hide small balances preference
  */
 export async function getHideSmallBalances(): Promise<boolean> {
-  const value = await getPreference('hide_small_balances');
+  const value = await getPreference('hideSmallBalances');
   return value === 'true';
 }
 
@@ -56,5 +56,5 @@ export async function getHideSmallBalances(): Promise<boolean> {
  * Set hide small balances preference
  */
 export async function setHideSmallBalances(hide: boolean): Promise<void> {
-  await setPreference('hide_small_balances', hide ? 'true' : 'false');
+  await setPreference('hideSmallBalances', hide ? 'true' : 'false');
 }

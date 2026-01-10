@@ -2,7 +2,8 @@ import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
 import type { Order } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { PrimaryButton } from './Buttons';
 
 interface OrderListItemProps {
   order: Order;
@@ -40,7 +41,7 @@ export function OrderListItem({ order, onCancel }: OrderListItemProps) {
       <View style={styles.header}>
         <View style={styles.leftSection}>
           <Typography type="defaultSemiBold" style={styles.market}>
-            {order.market}
+            {order.marketId}
           </Typography>
           <View style={[styles.sideBadge, isBuy ? styles.buyBadge : styles.sellBadge]}>
             <Typography style={[styles.sideText, { color: sideColor }]}>
@@ -72,12 +73,11 @@ export function OrderListItem({ order, onCancel }: OrderListItemProps) {
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.cancelButton}
+      <PrimaryButton
         onPress={onCancel}
-      >
-        <Typography style={styles.cancelButtonText}>Cancel Order</Typography>
-      </TouchableOpacity>
+        text="Cancel Order"
+        typographyStyle={styles.cancelButtonText}
+      />
     </View>
   );
 }

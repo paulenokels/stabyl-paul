@@ -6,6 +6,7 @@ const bgColor = '#FFFFFF';
 const secondaryBgColor = '#F5F5F5';
 const textColor = '#666161';
 const errorColor = '#ff0000';
+const successColor = '#00C853';
 const mediumEmphasis = '#7A7A7A';
 const borderColor = '#818181';
 const lightBorderColor = '#AAAAAA50';
@@ -21,6 +22,7 @@ export const theme: Theme = {
   primaryColor,
   secondaryColor,
   errorColor,
+  successColor,
   mediumEmphasis,
   borderColor,
   lightBorderColor,

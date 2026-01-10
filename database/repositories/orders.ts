@@ -1,41 +1,33 @@
 import type { Order } from '@/interfaces/database';
+import * as Crypto from 'expo-crypto';
 import { getDatabase } from '../index';
 
 /**
  * Create a new limit order
  */
-export async function createOrder(
-  market: string,
-  side: 'buy' | 'sell',
-  price: number,
-  amount: number
-): Promise<Order> {
+export async function createOrder(order: Omit<Order, 'id' | 'createdAt'>): Promise<Order> {
   const database = await getDatabase();
   
   // Generate unique order ID
-  const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const id =  Crypto.randomUUID();
   const createdAt = Date.now();
   
-  await database.runAsync(
-    `INSERT INTO orders (order_id, market, side, price, amount, status, created_at)
+   await database.runAsync(
+    `INSERT INTO orders (id, marketId, side, price, amount, status, createdAt)
      VALUES (?, ?, ?, ?, ?, 'open', ?)`,
-    orderId,
-    market,
-    side,
-    price,
-    amount,
+    id,
+    order.marketId,
+    order.side,
+    order.price,
+    order.amount,
     createdAt
   );
   
   return {
-    orderId,
-    market,
-    side,
-    price,
-    amount,
-    status: 'open',
+    id,
+    ...order,
     createdAt,
-  };
+  } as Order;
 }
 
 /**
@@ -44,41 +36,25 @@ export async function createOrder(
 export async function getOpenOrders(): Promise<Order[]> {
   const database = await getDatabase();
   
-  const orders = await database.getAllAsync<{
-    orderId: string;
-    market: string;
-    side: string;
-    price: number;
-    amount: number;
-    status: string;
-    createdAt: number;
-  }>(
-    `SELECT order_id as orderId, market, side, price, amount, status, created_at as createdAt
+  const orders = await database.getAllAsync<Order>(
+    `SELECT *
      FROM orders
      WHERE status = 'open'
-     ORDER BY created_at DESC`
-  );
+     ORDER BY createdAt DESC`
+  ) as Order[];
   
-  return orders.map(o => ({
-    orderId: o.orderId,
-    market: o.market,
-    side: o.side as 'buy' | 'sell',
-    price: o.price,
-    amount: o.amount,
-    status: o.status as 'open' | 'cancelled' | 'filled',
-    createdAt: o.createdAt,
-  }));
+  return orders
 }
 
 /**
  * Cancel an order
  */
-export async function cancelOrder(orderId: string): Promise<boolean> {
+export async function cancelOrder(id: string): Promise<boolean> {
   const database = await getDatabase();
   
   const result = await database.runAsync(
-    `UPDATE orders SET status = 'cancelled' WHERE order_id = ? AND status = 'open'`,
-    orderId
+    `UPDATE orders SET status = 'cancelled' WHERE id = ? AND status = 'open'`,
+    id
   );
   
   return result.changes > 0;
@@ -90,29 +66,13 @@ export async function cancelOrder(orderId: string): Promise<boolean> {
 export async function getOrdersByMarket(marketId: string): Promise<Order[]> {
   const database = await getDatabase();
   
-  const orders = await database.getAllAsync<{
-    orderId: string;
-    market: string;
-    side: string;
-    price: number;
-    amount: number;
-    status: string;
-    createdAt: number;
-  }>(
-    `SELECT order_id as orderId, market, side, price, amount, status, created_at as createdAt
+  const orders = await database.getAllAsync<Order>(
+    `SELECT *
      FROM orders
-     WHERE market = ? AND status = 'open'
-     ORDER BY created_at DESC`,
+     WHERE marketId = ? AND status = 'open'
+     ORDER BY createdAt DESC`,
     marketId
   );
   
-  return orders.map(o => ({
-    orderId: o.orderId,
-    market: o.market,
-    side: o.side as 'buy' | 'sell',
-    price: o.price,
-    amount: o.amount,
-    status: o.status as 'open' | 'cancelled' | 'filled',
-    createdAt: o.createdAt,
-  }));
+  return orders as Order[];
 }

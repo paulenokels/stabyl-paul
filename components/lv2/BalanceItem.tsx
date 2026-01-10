@@ -24,10 +24,10 @@ export function BalanceItem({ balance }: BalanceItemProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Typography type="defaultSemiBold" style={styles.asset}>
-          {balance.asset}
+          {balance.assetId}
         </Typography>
         <Typography type="defaultSemiBold" style={styles.total}>
-          {formatAmount(total, balance.asset)}
+          {formatAmount(total, balance.assetId)}
         </Typography>
       </View>
 
@@ -35,13 +35,13 @@ export function BalanceItem({ balance }: BalanceItemProps) {
         <View style={styles.detailRow}>
           <Typography style={styles.detailLabel}>Available:</Typography>
           <Typography style={styles.detailValue}>
-            {formatAmount(balance.available, balance.asset)}
+            {formatAmount(balance.available, balance.assetId)}
           </Typography>
         </View>
         <View style={styles.detailRow}>
           <Typography style={styles.detailLabel}>Locked:</Typography>
           <Typography style={styles.detailValue}>
-            {formatAmount(balance.locked, balance.asset)}
+            {formatAmount(balance.locked, balance.assetId)}
           </Typography>
         </View>
       </View>

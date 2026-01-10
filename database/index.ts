@@ -27,13 +27,13 @@ let db: SQLite.SQLiteDatabase | null = null;
   await database.execAsync('PRAGMA foreign_keys = ON');
   
   // Check current schema version
-  let currentVersion = 1;
+  let currentVersion = 0;
   try {
     const result = await database.getFirstAsync<{ version: number }>(
-      'SELECT version FROM schema_version ORDER BY version DESC LIMIT 1'
+      'SELECT version FROM schemaVersion ORDER BY version DESC LIMIT 1'
     );
     if (result) {
-      currentVersion = result.version;
+      currentVersion = result.version + 1;
     }
   } catch (error) {
     // Schema version table doesn't exist yet, will be created in migrations
@@ -41,7 +41,8 @@ let db: SQLite.SQLiteDatabase | null = null;
   }
   
   // Run migrations
-  await runMigrations(currentVersion);
+  const updateVersion = currentVersion + 1;
+  await runMigrations(updateVersion);
   // Seed database 
   await seedDatabase();
 }

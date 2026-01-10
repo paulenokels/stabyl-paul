@@ -13,8 +13,7 @@ interface MarketListItemProps {
 
 export function MarketListItem({ market, onPress, onFavoriteToggle }: MarketListItemProps) {
   const isPositive = market.change24h >= 0;
-  const changeColor = isPositive ? '#00C853' : theme.errorColor;
-  const changeSign = isPositive ? '+' : '';
+  const changeColor = isPositive ? theme.successColor : theme.errorColor;
 
   const formatPrice = (price: number | null) => {
     if (price === null) return '--';
@@ -40,7 +39,7 @@ export function MarketListItem({ market, onPress, onFavoriteToggle }: MarketList
       <View style={styles.content}>
         <View style={styles.leftSection}>
           <Typography type="defaultSemiBold" style={styles.marketId}>
-            {market.marketId}
+            {market.id}
           </Typography>
           <Typography style={styles.marketPair}>
             {market.base}/{market.quote}

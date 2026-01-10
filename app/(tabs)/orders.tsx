@@ -45,13 +45,8 @@ export default function OrdersScreen() {
     loadData();
   }, [loadData]);
 
-  const handlePlaceOrder = useCallback(async (
-    market: string,
-    side: 'buy' | 'sell',
-    price: number,
-    amount: number
-  ) => {
-    await createOrder(market, side, price, amount);
+  const handlePlaceOrder = useCallback(async (order: Omit<Order, 'id' | 'createdAt'>) => {
+    await createOrder(order);
     // Refresh orders list
     await loadData();
   }, [loadData]);
@@ -83,11 +78,11 @@ export default function OrdersScreen() {
 
       <FlatList
         data={orders}
-        keyExtractor={(item) => item.orderId}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <OrderListItem
             order={item}
-            onCancel={() => handleCancelOrder(item.orderId)}
+            onCancel={() => handleCancelOrder(item.id)}
           />
         )}
         ListHeaderComponent={

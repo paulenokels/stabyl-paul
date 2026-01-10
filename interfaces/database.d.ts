@@ -1,5 +1,5 @@
 export interface Market {
-  marketId: string;
+  id: string;
   base: string;
   quote: string;
   tickSize: number;
@@ -9,27 +9,27 @@ export interface Market {
 }
 
 export interface Asset {
-  assetId: string;
+  id: string;
   decimals: number;
   description: string;
 }
 
 export interface Balance {
-  asset: string;
+  assetId: string;
   available: number;
   locked: number;
 }
 
 export interface OrderBookLevel {
-  market: string;
+  marketId: string;
   side: 'bid' | 'ask';
   price: number;
   size: number;
 }
 
 export interface Trade {
-  market: string;
-  tradeId: string;
+  id: string;
+  marketId: string;
   price: number;
   size: number;
   side: 'buy' | 'sell';
@@ -37,8 +37,8 @@ export interface Trade {
 }
 
 export interface Order {
-  orderId: string;
-  market: string;
+  id: string;
+  marketId: string;
   side: 'buy' | 'sell';
   price: number;
   amount: number;

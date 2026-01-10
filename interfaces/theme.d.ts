@@ -5,6 +5,7 @@ export type Theme = {
     primaryColor: string;
     secondaryColor: string;
     errorColor: string;
+    successColor: string;
     mediumEmphasis: string;
     borderColor: string;
     lightBorderColor: string;

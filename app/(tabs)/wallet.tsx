@@ -112,7 +112,7 @@ export default function WalletScreen() {
 
       <FlatList
         data={filteredBalances}
-        keyExtractor={(item) => item.asset}
+        keyExtractor={(item) => item.assetId}
         renderItem={({ item }) => <BalanceItem balance={item} />}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
