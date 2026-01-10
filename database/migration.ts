@@ -67,6 +67,15 @@ export async function runMigrations(currentVersion: number): Promise<void> {
       
       CREATE INDEX IF NOT EXISTS idx_trades_market ON trades(market);
       CREATE INDEX IF NOT EXISTS idx_trades_ts ON trades(ts);
+
+      -- Favorites table
+      CREATE TABLE IF NOT EXISTS favorites (
+        market_id TEXT PRIMARY KEY,
+        created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+        FOREIGN KEY (market_id) REFERENCES markets(market_id)
+      );
+      
+      CREATE INDEX IF NOT EXISTS idx_favorites_market ON favorites(market_id);  
       
       -- Insert schema version
       INSERT INTO schema_version (version) VALUES (1);
