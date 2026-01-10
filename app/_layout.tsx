@@ -1,4 +1,4 @@
-import { initializeAndSeedDatabase } from '@/services/database';
+import { initializeDatabase } from '@/database';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -12,7 +12,7 @@ export const unstable_settings = {
 export default function RootLayout() {
   useEffect(() => {
     // Initialize database and seed on first launch
-    initializeAndSeedDatabase().catch((error) => {
+    initializeDatabase().catch((error) => {
       console.error('Failed to initialize database:', error);
     });
   }, []);
