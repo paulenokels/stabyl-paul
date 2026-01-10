@@ -1,8 +1,8 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
 import { MarketListItem } from '@/components/lv2/MarketListItem';
-import type { MarketWithPrice } from '@/database/markets';
-import { getMarketsWithPrice, toggleFavorite } from '@/database/markets';
+import type { MarketWithPrice } from '@/database/repositories/markets';
+import { getMarketsWithPrice, toggleFavorite } from '@/database/repositories/markets';
 import { theme } from '@/theme/theme';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';

@@ -1,5 +1,5 @@
 import type { Market } from '@/interfaces/database';
-import { getDatabase } from './index';
+import { getDatabase } from '../index';
 
 export interface MarketWithPrice extends Market {
   lastPrice: number | null;
@@ -80,7 +80,7 @@ export async function isFavorite(marketId: string): Promise<boolean> {
     'SELECT COUNT(*) as count FROM favorites WHERE market_id = ?',
     marketId
   );
-  return result ? result.count > 0 : false;
+  return result?.count && result.count > 0 ? true : false;
 }
 
 /**

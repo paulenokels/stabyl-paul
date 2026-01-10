@@ -1,5 +1,5 @@
 import type { Balance } from '@/interfaces/database';
-import { getDatabase } from './index';
+import { getDatabase } from '../index';
 
 /**
  * Get all balances

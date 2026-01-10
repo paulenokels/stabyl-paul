@@ -1,5 +1,5 @@
 import type { OrderBookLevel, Trade } from '@/interfaces/database';
-import { getDatabase } from './index';
+import { getDatabase } from '../index';
 
 /**
  * Get top N bids for a market (sorted by price descending)

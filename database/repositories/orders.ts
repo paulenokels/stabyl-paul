@@ -1,5 +1,5 @@
 import type { Order } from '@/interfaces/database';
-import { getDatabase } from './index';
+import { getDatabase } from '../index';
 
 /**
  * Create a new limit order

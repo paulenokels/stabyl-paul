@@ -1,6 +1,6 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
-import type { MarketWithPrice } from '@/database/markets';
+import type { MarketWithPrice } from '@/database/repositories/markets';
 import { theme } from '@/theme/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, TouchableOpacity } from 'react-native';

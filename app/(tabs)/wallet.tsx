@@ -1,7 +1,7 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
 import { BalanceItem } from '@/components/lv2/BalanceItem';
-import { getBalances, getHideSmallBalances, setHideSmallBalances } from '@/database/wallet';
+import { getBalances, getHideSmallBalances, setHideSmallBalances } from '@/database/repositories/wallet';
 import type { Balance } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
 import { useFocusEffect } from 'expo-router';
