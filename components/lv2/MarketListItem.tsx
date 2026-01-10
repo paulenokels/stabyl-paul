@@ -49,7 +49,7 @@ export function MarketListItem({ market, onPress, onFavoriteToggle }: MarketList
         <View style={styles.rightSection}>
           <View style={styles.priceSection}>
             <Typography type="defaultSemiBold" style={styles.price}>
-              {formatPrice(market.lastPrice)}
+            &#x20A6;{formatPrice(market.lastPrice)}
             </Typography>
             <Typography style={[styles.change24h, { color: changeColor }]}>
               {formatChange(market.change24h)}

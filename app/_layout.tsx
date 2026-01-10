@@ -1,3 +1,4 @@
+import { MarketStreamPlayerProvider } from '@/contexts/MarketStreamPlayerContext';
 import { initializeDatabase } from '@/database';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
@@ -19,12 +20,16 @@ export default function RootLayout() {
   }, []);
 
   return (
-  <SafeAreaView style={{ flex: 1 }}>
-    <ThemeProvider value={DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  </SafeAreaView>);
+    <SafeAreaView style={{ flex: 1 }}>
+      <MarketStreamPlayerProvider>
+        <ThemeProvider value={DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="market" options={{ headerShown: false }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </MarketStreamPlayerProvider>
+    </SafeAreaView>
+  );
 }

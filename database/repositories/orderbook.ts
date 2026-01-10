@@ -27,7 +27,7 @@ export async function getTopAsks(marketId: string, limit: number = 10): Promise<
   const database = await getDatabase();
   
   const asks = await database.getAllAsync<OrderBookLevel>(
-    `SELECT market, side, price, size
+    `SELECT marketId, side, price, size
     FROM orderBookLevels
     WHERE marketId = ? AND side = 'ask'
     ORDER BY price ASC

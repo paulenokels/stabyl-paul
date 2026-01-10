@@ -1,6 +1,6 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
-import type { PlaybackStatus as PlaybackStatusType } from '@/components/lv3/MarketStreamPlayer';
+import type { PlaybackStatus as PlaybackStatusType } from '@/contexts/MarketStreamPlayerContext';
 import { theme } from '@/theme/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet } from 'react-native';

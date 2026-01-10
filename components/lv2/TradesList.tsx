@@ -76,12 +76,8 @@ export function TradesList({ trades }: TradesListProps) {
           <Typography style={[styles.headerLabel, styles.sideColumn]}>Side</Typography>
         </View>
         
-        {trades.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Typography style={styles.emptyText}>No trades yet</Typography>
-          </View>
-        ) : (
-          <FlatList
+        {trades?.length > 0 ? (
+            <FlatList
             data={trades}
             keyExtractor={(item) => item.id}
             renderItem={renderTrade}
@@ -89,6 +85,11 @@ export function TradesList({ trades }: TradesListProps) {
             maxToRenderPerBatch={10}
             windowSize={10}
           />
+        )  
+         : (
+          <View style={styles.emptyState}>
+            <Typography style={styles.emptyText}>No trades yet</Typography>
+          </View>
         )}
       </View>
     </View>

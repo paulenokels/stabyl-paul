@@ -3,7 +3,8 @@ import { View } from '@/components/lv1/View';
 import { OrderBook } from '@/components/lv2/OrderBook';
 import { PlaybackStatusIndicator } from '@/components/lv2/PlaybackStatus';
 import { TradesList } from '@/components/lv2/TradesList';
-import { MarketStreamPlayer, type PlaybackStatus } from '@/components/lv3/MarketStreamPlayer';
+import { MarketStreamPlayer } from '@/components/lv3/MarketStreamPlayer';
+import { useMarketStreamPlayer, type StreamUpdate } from '@/contexts/MarketStreamPlayerContext';
 import type { MarketWithPrice } from '@/database/repositories/markets';
 import { getMarketsWithPrice, toggleFavorite } from '@/database/repositories/markets';
 import { getRecentTrades, getTopAsks, getTopBids } from '@/database/repositories/orderbook';
@@ -11,23 +12,99 @@ import type { OrderBookLevel, Trade } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function MarketDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const player = useMarketStreamPlayer();
   const [market, setMarket] = useState<MarketWithPrice | null>(null);
   const [loading, setLoading] = useState(true);
   const [bids, setBids] = useState<OrderBookLevel[]>([]);
   const [asks, setAsks] = useState<OrderBookLevel[]>([]);
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [playbackStatus, setPlaybackStatus] = useState<PlaybackStatus>('idle');
   const [refreshing, setRefreshing] = useState(false);
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const loadOrderBook = useCallback(async () => {
+
+  useEffect(() => {
     if (!id) return;
+    loadInitialData();
+  }, [id]);
+
+  // Subscribe to stream updates and update local state
+  useEffect(() => {
+    if (!id) return;
+
+    const unsubscribe = player.subscribeToUpdates((updates: StreamUpdate[]) => {
+      // Filter updates for this market only
+      const marketUpdates = updates.filter(update => update.data.marketId === id);
+
+      if (marketUpdates.length === 0) return;
+
+      // Process updates
+      marketUpdates.forEach(update => {
+        if (update.type === 'trade') {
+          // Add new trade to the beginning of the trades list
+          setTrades(prevTrades => {
+            // Check if trade already exists to avoid duplicates
+            const exists = prevTrades.some(t => t.id === update.data.id);
+            if (exists) return prevTrades;
+            
+            // Add to beginning and limit to 20 most recent
+            const newTrades = [update.data, ...prevTrades];
+            return newTrades.slice(0, 20);
+          });
+        } else if (update.type === 'orderbook_added' || update.type === 'orderbook_updated') {
+          // Update order book level
+          const level = update.data;
+          if (level.side === 'bid') {
+            setBids(prevBids => {
+              // Remove existing level with same price if it exists
+              const filtered = prevBids.filter(b => b.price !== level.price);
+              // Add new/updated level
+              const updated = [...filtered, level];
+              // Sort by price descending (highest first) and take top 10
+              return updated
+                .sort((a, b) => b.price - a.price)
+                .slice(0, 10);
+            });
+          } else {
+            setAsks(prevAsks => {
+              // Remove existing level with same price if it exists
+              const filtered = prevAsks.filter(a => a.price !== level.price);
+              // Add new/updated level
+              const updated = [...filtered, level];
+              // Sort by price ascending (lowest first) and take top 10
+              return updated
+                .sort((a, b) => a.price - b.price)
+                .slice(0, 10);
+            });
+          }
+        } else if (update.type === 'orderbook_deleted') {
+          // Remove order book level
+          const level = update.data;
+          if (level.side === 'bid') {
+            setBids(prevBids => {
+              // Simply remove the deleted level - new levels will be added via stream updates
+              return prevBids.filter(b => b.price !== level.price);
+            });
+          } else {
+            setAsks(prevAsks => {
+              // Simply remove the deleted level - new levels will be added via stream updates
+              return prevAsks.filter(a => a.price !== level.price);
+            });
+          }
+        }
+      });
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [id, player]);
+
+  const loadOrderBook = async () => {
     
     try {
       const [topBids, topAsks] = await Promise.all([
@@ -39,10 +116,9 @@ export default function MarketDetailScreen() {
     } catch (error) {
       console.error('Error loading order book:', error);
     }
-  }, [id]);
+  };
 
-  const loadTrades = useCallback(async () => {
-    if (!id) return;
+  const loadTrades = async () => {
     
     try {
       const recentTrades = await getRecentTrades(id, 20);
@@ -50,10 +126,9 @@ export default function MarketDetailScreen() {
     } catch (error) {
       console.error('Error loading trades:', error);
     }
-  }, [id]);
+  };
 
-  const loadMarket = useCallback(async () => {
-    if (!id) return;
+  const loadMarket = async () => {
     
     try {
       const markets = await getMarketsWithPrice();
@@ -66,51 +141,29 @@ export default function MarketDetailScreen() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  };
 
-  const refreshData = useCallback(async () => {
-    if (!id) return;
-    
-    setRefreshing(true);
-    try {
+  const loadInitialData = (async () => {
+        console.log('Loading initial data');
       await Promise.all([
         loadMarket(),
         loadOrderBook(),
         loadTrades(),
       ]);
+   
+  });
+
+  const refreshData = async () => {
+    
+    setRefreshing(true);
+    try {
+        console.log('Refreshing data');
+      await loadInitialData();
     } finally {
       setRefreshing(false);
     }
-  }, [id, loadMarket, loadOrderBook, loadTrades]);
+  };
 
-  useEffect(() => {
-    if (id) {
-      loadMarket();
-      loadOrderBook();
-      loadTrades();
-    }
-  }, [id, loadMarket, loadOrderBook, loadTrades]);
-
-  // Auto-refresh when playback is active to show real-time updates
-  useEffect(() => {
-    if (playbackStatus === 'playing') {
-      // Refresh every 500ms when playing to show real-time updates
-      refreshIntervalRef.current = setInterval(() => {
-        refreshData();
-      }, 500);
-    } else {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-        refreshIntervalRef.current = null;
-      }
-    }
-
-    return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-      }
-    };
-  }, [playbackStatus, refreshData]);
 
   const handleFavoriteToggle = useCallback(async () => {
     if (!market) return;
@@ -176,7 +229,7 @@ export default function MarketDetailScreen() {
         </TouchableOpacity>
         
         <View style={styles.headerContent}>
-          <Typography type="title" style={styles.marketTitle}>
+          <Typography type="subtitle" style={styles.marketTitle}>
             {market.id}
           </Typography>
           <Typography style={styles.marketPair}>
@@ -185,7 +238,7 @@ export default function MarketDetailScreen() {
         </View>
         
         <View style={styles.headerRight}>
-          <PlaybackStatusIndicator status={playbackStatus} />
+          <PlaybackStatusIndicator status={player.status} />
           <TouchableOpacity
             style={styles.favoriteButton}
             onPress={handleFavoriteToggle}
@@ -224,14 +277,7 @@ export default function MarketDetailScreen() {
         <TradesList trades={trades} />
 
         <View style={styles.streamPlayerSection}>
-          <MarketStreamPlayer
-            onStatusChange={setPlaybackStatus}
-            onProgress={() => {
-              // Refresh data when events are processed
-              refreshData();
-            }}
-            playbackSpeed={100}
-          />
+          <MarketStreamPlayer />
         </View>
       </ScrollView>
     </View>
@@ -303,7 +349,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.lightBorderColor,
   },
   price: {
-    fontSize: 36,
+    fontSize: 30,
     marginBottom: 8,
   },
   change24h: {
