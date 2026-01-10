@@ -1,21 +1,21 @@
 import { Typography } from '@/components/lv1/Typography';
 import { theme } from '@/theme/theme';
 import React from 'react';
-import { ActivityIndicator, StyleProp, StyleSheet, TextStyle, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 type Props = {
-  containerStyle?: StyleProp<ViewStyle | TextStyle>;
   text?: string;
+  color?: string;
 };
 
-export const LoadingSm: React.FC<Props> = ({ containerStyle }) => {
-  return <View style={[styles.container, containerStyle]}><ActivityIndicator size={20} color={theme.primaryColor} /></View>;
+export const LoadingSm: React.FC<Props> = ({color}) => {
+  return <View style={[styles.container,]}><ActivityIndicator size={20} color={color || theme.primaryColor} /></View>;
 };
 
-export const LoadingMd: React.FC<Props> = ({ containerStyle, text }) => {
+export const LoadingMd: React.FC<Props> = ({ color, text }) => {
   return (
-    <View style={[styles.container, containerStyle]}>
-      <ActivityIndicator size={40} color={theme.primaryColor} />
+    <View style={[styles.container]}>
+      <ActivityIndicator size={40} color={color ||theme.primaryColor} />
       {text && <Typography style={{ fontSize: 12 }}>{text}</Typography>}
     </View>
   );

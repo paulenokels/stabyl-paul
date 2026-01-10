@@ -70,7 +70,7 @@ export const PrimaryButton: React.FC<ButtonProps> = (props) => {
         }}
       >
         {icon && <View style={styles.icon}>{icon}</View>}
-        {loading && <LoadingSm containerStyle={{ color: theme?.bgColor }} />}
+        {loading && <LoadingSm color={theme?.bgColor} />}
         {!loading && <Typography type="defaultSemiBold" style={styles.typography}>{text}</Typography>}
       </View>
     </TouchableOpacity>

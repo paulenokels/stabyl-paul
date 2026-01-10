@@ -2,7 +2,7 @@ import { Theme } from '@/interfaces/theme';
 
 const primaryColor = '#3E3AFF';
 const secondaryColor = '#000000';
-const bgColor = '#FFFFFF';
+const bgColor = '#ffffff';
 const secondaryBgColor = '#F5F5F5';
 const textColor = '#666161';
 const errorColor = '#ff0000';

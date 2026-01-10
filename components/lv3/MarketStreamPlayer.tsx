@@ -1,8 +1,8 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
 import { getDatabase } from '@/database';
-import { loadStreamFile, type StreamEvent } from '@/services/streamLoader';
 import { theme } from '@/theme/theme';
+import { loadStreamFile, type StreamEvent } from '@/utils/streamLoader';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 

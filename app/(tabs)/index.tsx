@@ -70,9 +70,7 @@ export default function HomeScreen() {
         <Typography type="title" style={styles.title}>Markets</Typography>
       </View>
 
-      <View>
-        <MarketStreamPlayer />
-      </View>
+     
       
       <FlatList
         data={markets}
@@ -93,6 +91,10 @@ export default function HomeScreen() {
         }
         contentContainerStyle={styles.listContent}
       />
+
+<View>
+        <MarketStreamPlayer />
+      </View>
     </View>
   );
 }
@@ -105,6 +107,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
+    backgroundColor: theme.bgColor,
   },
   title: {
     marginBottom: 8,
