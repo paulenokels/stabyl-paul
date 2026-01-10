@@ -35,3 +35,13 @@ export interface Trade {
   side: 'buy' | 'sell';
   ts: number;
 }
+
+export interface Order {
+  orderId: string;
+  market: string;
+  side: 'buy' | 'sell';
+  price: number;
+  amount: number;
+  status: 'open' | 'cancelled' | 'filled';
+  createdAt: number;
+}

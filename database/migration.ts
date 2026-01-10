@@ -75,7 +75,32 @@ export async function runMigrations(currentVersion: number): Promise<void> {
         FOREIGN KEY (market_id) REFERENCES markets(market_id)
       );
       
-      CREATE INDEX IF NOT EXISTS idx_favorites_market ON favorites(market_id);  
+      CREATE INDEX IF NOT EXISTS idx_favorites_market ON favorites(market_id);
+      
+      -- Orders table (user's limit orders)
+      CREATE TABLE IF NOT EXISTS orders (
+        order_id TEXT PRIMARY KEY,
+        market TEXT NOT NULL,
+        side TEXT NOT NULL CHECK (side IN ('buy', 'sell')),
+        price REAL NOT NULL,
+        amount REAL NOT NULL,
+        status TEXT NOT NULL CHECK (status IN ('open', 'cancelled', 'filled')) DEFAULT 'open',
+        created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+        FOREIGN KEY (market) REFERENCES markets(market_id)
+      );
+      
+      CREATE INDEX IF NOT EXISTS idx_orders_market ON orders(market);
+      CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+      CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+      
+      -- Preferences table (user preferences)
+      CREATE TABLE IF NOT EXISTS preferences (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+      );
+      
+      CREATE INDEX IF NOT EXISTS idx_preferences_key ON preferences(key);
       
       -- Insert schema version
       INSERT INTO schema_version (version) VALUES (1);

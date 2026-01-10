@@ -27,6 +27,20 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Ionicons size={28} name="search-outline" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="orders"
+        options={{
+          title: 'Orders',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="list-outline" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="wallet"
+        options={{
+          title: 'Wallet',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="wallet-outline" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

@@ -1,18 +1,56 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
+import { OrderBook } from '@/components/lv2/OrderBook';
+import { PlaybackStatusIndicator } from '@/components/lv2/PlaybackStatus';
+import { TradesList } from '@/components/lv2/TradesList';
+import { MarketStreamPlayer, type PlaybackStatus } from '@/components/lv3/MarketStreamPlayer';
 import type { MarketWithPrice } from '@/database/markets';
 import { getMarketsWithPrice, toggleFavorite } from '@/database/markets';
+import { getRecentTrades, getTopAsks, getTopBids } from '@/database/orderbook';
+import type { OrderBookLevel, Trade } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function MarketDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [market, setMarket] = useState<MarketWithPrice | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bids, setBids] = useState<OrderBookLevel[]>([]);
+  const [asks, setAsks] = useState<OrderBookLevel[]>([]);
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [playbackStatus, setPlaybackStatus] = useState<PlaybackStatus>('idle');
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const loadOrderBook = useCallback(async () => {
+    if (!id) return;
+    
+    try {
+      const [topBids, topAsks] = await Promise.all([
+        getTopBids(id, 10),
+        getTopAsks(id, 10),
+      ]);
+      setBids(topBids);
+      setAsks(topAsks);
+    } catch (error) {
+      console.error('Error loading order book:', error);
+    }
+  }, [id]);
+
+  const loadTrades = useCallback(async () => {
+    if (!id) return;
+    
+    try {
+      const recentTrades = await getRecentTrades(id, 20);
+      setTrades(recentTrades);
+    } catch (error) {
+      console.error('Error loading trades:', error);
+    }
+  }, [id]);
 
   const loadMarket = useCallback(async () => {
     if (!id) return;
@@ -30,9 +68,49 @@ export default function MarketDetailScreen() {
     }
   }, [id]);
 
+  const refreshData = useCallback(async () => {
+    if (!id) return;
+    
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        loadMarket(),
+        loadOrderBook(),
+        loadTrades(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [id, loadMarket, loadOrderBook, loadTrades]);
+
   useEffect(() => {
-    loadMarket();
-  }, [loadMarket]);
+    if (id) {
+      loadMarket();
+      loadOrderBook();
+      loadTrades();
+    }
+  }, [id, loadMarket, loadOrderBook, loadTrades]);
+
+  // Auto-refresh when playback is active to show real-time updates
+  useEffect(() => {
+    if (playbackStatus === 'playing') {
+      // Refresh every 500ms when playing to show real-time updates
+      refreshIntervalRef.current = setInterval(() => {
+        refreshData();
+      }, 500);
+    } else {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [playbackStatus, refreshData]);
 
   const handleFavoriteToggle = useCallback(async () => {
     if (!market) return;
@@ -54,21 +132,9 @@ export default function MarketDetailScreen() {
     );
   }
 
-  if (!market) {
-    return (
-      <View style={styles.errorContainer}>
-        <Typography type="title" style={styles.errorText}>Market not found</Typography>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Typography type="link">Go back</Typography>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  
 
-  const isPositive = market.change24h >= 0;
+  const isPositive = market?.change24h && market.change24h >= 0;
   const changeColor = isPositive ? '#00C853' : theme.errorColor;
   const changeSign = isPositive ? '+' : '';
 
@@ -84,6 +150,20 @@ export default function MarketDetailScreen() {
     const sign = change >= 0 ? '+' : '';
     return `${sign}${change.toFixed(2)}%`;
   };
+
+  if (!market) {
+    return (
+      <View style={styles.errorContainer}>
+        <Typography type="title" style={styles.errorText}>Market not found</Typography>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Typography type="link">Go back</Typography>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -104,45 +184,56 @@ export default function MarketDetailScreen() {
           </Typography>
         </View>
         
-        <TouchableOpacity
-          style={styles.favoriteButton}
-          onPress={handleFavoriteToggle}
-        >
-          <Ionicons
-            name={market.isFavorite ? 'star' : 'star-outline'}
-            size={28}
-            color={market.isFavorite ? theme.primaryColor : theme.textColor}
+        <View style={styles.headerRight}>
+          <PlaybackStatusIndicator status={playbackStatus} />
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={handleFavoriteToggle}
+          >
+            <Ionicons
+              name={market.isFavorite ? 'star' : 'star-outline'}
+              size={28}
+              color={market.isFavorite ? theme.primaryColor : theme.textColor}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refreshData}
+            tintColor={theme.primaryColor}
           />
-        </TouchableOpacity>
-      </View>
+        }
+      >
+        <View style={styles.priceSection}>
+          <Typography type="title" style={styles.price}>
+            {formatPrice(market.lastPrice)}
+          </Typography>
+          <Typography style={[styles.change24h, { color: changeColor }]}>
+            {formatChange(market.change24h)} (24h)
+          </Typography>
+        </View>
 
-      <View style={styles.priceSection}>
-        <Typography type="title" style={styles.price}>
-          {formatPrice(market.lastPrice)}
-        </Typography>
-        <Typography style={[styles.change24h, { color: changeColor }]}>
-          {formatChange(market.change24h)} (24h)
-        </Typography>
-      </View>
+        <OrderBook bids={bids} asks={asks} />
 
-      <View style={styles.infoSection}>
-        <View style={styles.infoRow}>
-          <Typography style={styles.infoLabel}>Base Asset:</Typography>
-          <Typography type="defaultSemiBold">{market.base}</Typography>
+        <TradesList trades={trades} />
+
+        <View style={styles.streamPlayerSection}>
+          <MarketStreamPlayer
+            onStatusChange={setPlaybackStatus}
+            onProgress={() => {
+              // Refresh data when events are processed
+              refreshData();
+            }}
+            playbackSpeed={100}
+          />
         </View>
-        <View style={styles.infoRow}>
-          <Typography style={styles.infoLabel}>Quote Asset:</Typography>
-          <Typography type="defaultSemiBold">{market.quote}</Typography>
-        </View>
-        <View style={styles.infoRow}>
-          <Typography style={styles.infoLabel}>Tick Size:</Typography>
-          <Typography type="defaultSemiBold">{market.tickSize}</Typography>
-        </View>
-        <View style={styles.infoRow}>
-          <Typography style={styles.infoLabel}>Min Order Size:</Typography>
-          <Typography type="defaultSemiBold">{market.minOrderSize}</Typography>
-        </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -150,6 +241,11 @@ export default function MarketDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     padding: 16,
   },
   loadingContainer: {
@@ -174,7 +270,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.lightBorderColor,
     gap: 12,
   },
   backButton: {
@@ -182,6 +280,11 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   marketTitle: {
     marginBottom: 4,
@@ -221,5 +324,9 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 16,
     color: theme.mediumEmphasis,
+  },
+  streamPlayerSection: {
+    marginTop: 16,
+    marginBottom: 24,
   },
 });
