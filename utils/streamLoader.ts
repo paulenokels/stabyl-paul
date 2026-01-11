@@ -10,7 +10,6 @@ export type StreamEvent =
 
 /**
  * Load and parse the market stream NDJSON file
- * This function handles loading the file in different environments (web, iOS, Android)
  */
 export async function loadStreamFile(): Promise<StreamEvent[]> {
     let text: string;
@@ -42,7 +41,6 @@ export async function loadStreamFile(): Promise<StreamEvent[]> {
         throw new Error('Failed to load stream file');
       }
 
-    // Parse NDJSON (newline-delimited JSON)
    
  
 }
