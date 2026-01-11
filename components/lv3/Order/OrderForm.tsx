@@ -2,6 +2,7 @@ import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
 import { Market, Order } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
+import { checkNumberInput } from '@/utils/stringUtils';
 import { useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 import { PrimaryButton } from '../../lv2/Buttons';
@@ -64,31 +65,12 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
 
   const selectedMarketData = markets.find(m => m.id === selectedMarketId);
 
-  // Filter input to only allow numbers and a single decimal point
   const handlePriceChange = (text: string) => {
-    // Only allow numbers and a single decimal point
-    const numericValue = text.replace(/[^0-9.]/g, '');
-    
-    // Ensure only one decimal point
-    const parts = numericValue.split('.');
-    const filteredValue = parts.length > 2 
-      ? parts[0] + '.' + parts.slice(1).join('')
-      : numericValue;
-    
-    setPrice(filteredValue);
+    setPrice(checkNumberInput(text));
   };
 
   const handleAmountChange = (text: string) => {
-    // Only allow numbers and a single decimal point
-    const numericValue = text.replace(/[^0-9.]/g, '');
-    
-    // Ensure only one decimal point
-    const parts = numericValue.split('.');
-    const filteredValue = parts.length > 2 
-      ? parts[0] + '.' + parts.slice(1).join('')
-      : numericValue;
-    
-    setAmount(filteredValue);
+    setAmount(checkNumberInput(text));
   };
 
   return (
@@ -143,7 +125,7 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
         <PrimaryInput
           value={amount}
           onChangeText={handleAmountChange}
-          placeholder="0.0000"
+          placeholder="0.00"
           keyboardType="decimal-pad"
         />
       </View>
