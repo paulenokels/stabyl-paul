@@ -37,7 +37,6 @@ export async function loadStreamFile(): Promise<StreamEvent[]> {
         
         return events;
       } catch (fetchError) {
-        console.log('fetchError', fetchError);
         throw new Error('Failed to load stream file');
       }
 

@@ -29,11 +29,18 @@ let db: SQLite.SQLiteDatabase | null = null;
   // Check current schema version
   let currentVersion = 0;
   try {
-    const result = await database.getFirstAsync<{ version: number }>(
-      'SELECT version FROM schemaVersion ORDER BY version DESC LIMIT 1'
+    // For the first time, check if schemaVersion table exists
+    const tableCheck = await database.getFirstAsync<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='schemaVersion'"
     );
-    if (result) {
-      currentVersion = result.version + 1;
+    
+    if (tableCheck) {
+      const result = await database.getFirstAsync<{ version: number }>(
+        'SELECT version FROM schemaVersion ORDER BY version DESC LIMIT 1'
+      );
+      if (result) {
+        currentVersion = result.version + 1;
+      }
     }
   } catch (error) {
     // Schema version table doesn't exist yet, will be created in migrations

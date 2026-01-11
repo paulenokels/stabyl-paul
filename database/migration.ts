@@ -51,8 +51,6 @@ export async function runMigrations(nextVersion: number): Promise<void> {
         FOREIGN KEY (marketId) REFERENCES markets(id)
       );
       
-      CREATE INDEX IF NOT EXISTS idxOrderBookMarketSide ON orderBookLevels(marketId, side);
-      CREATE INDEX IF NOT EXISTS idxOrderBookPrice ON orderBookLevels(price);
       
       -- Trades table
       CREATE TABLE IF NOT EXISTS trades (
@@ -65,8 +63,6 @@ export async function runMigrations(nextVersion: number): Promise<void> {
         FOREIGN KEY (marketId) REFERENCES markets(id)
       );
       
-      CREATE INDEX IF NOT EXISTS idxTradesMarket ON trades(marketId);
-      CREATE INDEX IF NOT EXISTS idxTradesTs ON trades(ts);
 
       -- Favorites table
       CREATE TABLE IF NOT EXISTS favorites (
@@ -75,7 +71,6 @@ export async function runMigrations(nextVersion: number): Promise<void> {
         FOREIGN KEY (marketId) REFERENCES markets(id)
       );
       
-      CREATE INDEX IF NOT EXISTS idxFavoritesMarket ON favorites(marketId);
       
       -- Orders table (user's limit orders)
       CREATE TABLE IF NOT EXISTS orders (
@@ -89,9 +84,7 @@ export async function runMigrations(nextVersion: number): Promise<void> {
         FOREIGN KEY (marketId) REFERENCES markets(id)
       );
       
-      CREATE INDEX IF NOT EXISTS idxOrdersMarket ON orders(marketId);
-      CREATE INDEX IF NOT EXISTS idxOrdersStatus ON orders(status);
-      CREATE INDEX IF NOT EXISTS idxOrdersCreatedAt ON orders(createdAt);
+     
       
       -- Preferences table (user preferences)
       CREATE TABLE IF NOT EXISTS preferences (
@@ -100,7 +93,6 @@ export async function runMigrations(nextVersion: number): Promise<void> {
         updatedAt INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
       );
       
-      CREATE INDEX IF NOT EXISTS idxPreferencesKey ON preferences(key);
       
       -- Insert schema version (only if it doesn't exist)
       INSERT OR IGNORE INTO schemaVersion (version) VALUES (1);

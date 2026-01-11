@@ -65,7 +65,7 @@ export default function MarketDetailScreen() {
               const filtered = prevBids.filter(b => b.price !== level.price);
               // Add new/updated level
               const updated = [...filtered, level];
-              // Sort by price descending (highest first) and take top 10
+              // Sort by seq
               return updated
                 .sort((a, b) => (b.seq ?? b.ts) - (a.seq ?? a.ts))
                 .slice(0, 10);
@@ -76,9 +76,9 @@ export default function MarketDetailScreen() {
               const filtered = prevAsks.filter(a => a.price !== level.price);
               // Add new/updated level
               const updated = [...filtered, level];
-              // Sort by price ascending (lowest first) and take top 10
+              // Sort by seq
               return updated
-                .sort((a, b) => a.price - b.price)
+                .sort((a, b) => (a?.seq ?? a.price) - (b?.seq ?? b.price))
                 .slice(0, 10);
             });
           }
@@ -145,7 +145,6 @@ export default function MarketDetailScreen() {
   };
 
   const loadInitialData = (async () => {
-        console.log('Loading initial data');
       await Promise.all([
         loadMarket(),
         loadOrderBook(),
@@ -158,7 +157,6 @@ export default function MarketDetailScreen() {
     
     setRefreshing(true);
     try {
-        console.log('Refreshing data');
       await loadInitialData();
     } finally {
       setRefreshing(false);
