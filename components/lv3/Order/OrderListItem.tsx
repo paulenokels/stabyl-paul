@@ -3,7 +3,7 @@ import { View } from '@/components/lv1/View';
 import type { Order } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
 import { StyleSheet } from 'react-native';
-import { PrimaryButton } from './Buttons';
+import { PrimaryButton } from '../../lv2/Buttons';
 
 interface OrderListItemProps {
   order: Order;
@@ -76,7 +76,8 @@ export function OrderListItem({ order, onCancel }: OrderListItemProps) {
       <PrimaryButton
         onPress={onCancel}
         text="Cancel Order"
-        typographyStyle={styles.cancelButtonText}
+        variant='danger'
+        style={styles.cancelButton}
       />
     </View>
   );
@@ -140,17 +141,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   cancelButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: theme.errorColor,
-    backgroundColor: theme.bgColor,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.errorColor,
+    flex: 1,
+    width: '100%',
   },
 });

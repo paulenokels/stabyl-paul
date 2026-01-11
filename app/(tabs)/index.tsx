@@ -1,7 +1,7 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
-import { MarketListItem } from '@/components/lv2/MarketListItem';
-import { MarketStreamPlayer } from '@/components/lv3/MarketStreamPlayer';
+import { MarketListItem } from '@/components/lv3/Market/MarketListItem';
+import { MarketStreamPlayer } from '@/components/lv3/Market/MarketStreamPlayer';
 import type { MarketWithPrice } from '@/database/repositories/markets';
 import { getMarketsWithPrice, toggleFavorite } from '@/database/repositories/markets';
 import { theme } from '@/theme/theme';

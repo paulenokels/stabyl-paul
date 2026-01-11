@@ -1,9 +1,8 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
-import { OrderBook } from '@/components/lv2/OrderBook';
-import { PlaybackStatusIndicator } from '@/components/lv2/PlaybackStatus';
-import { TradesList } from '@/components/lv2/TradesList';
-import { MarketStreamPlayer } from '@/components/lv3/MarketStreamPlayer';
+import { PlaybackStatusIndicator } from '@/components/lv3/Market/PlaybackStatus';
+import { TradesList } from '@/components/lv3/Market/TradesList';
+import { OrderBook } from '@/components/lv3/Order/OrderBook';
 import { useMarketStreamPlayer, type StreamUpdate } from '@/contexts/MarketStreamPlayerContext';
 import type { MarketWithPrice } from '@/database/repositories/markets';
 import { getMarketsWithPrice, toggleFavorite } from '@/database/repositories/markets';
@@ -45,15 +44,17 @@ export default function MarketDetailScreen() {
       // Process updates
       marketUpdates.forEach(update => {
         if (update.type === 'trade') {
-          // Add new trade to the beginning of the trades list
+          // Add new trade and sort by sequence (ts - timestamp, descending)
           setTrades(prevTrades => {
             // Check if trade already exists to avoid duplicates
             const exists = prevTrades.some(t => t.id === update.data.id);
             if (exists) return prevTrades;
             
-            // Add to beginning and limit to 20 most recent
+            // Add new trade and sort by ts (timestamp or sequence) descending (highest first)
             const newTrades = [update.data, ...prevTrades];
-            return newTrades.slice(0, 20);
+            return newTrades
+              .sort((a, b) => (b.seq ?? b.ts) - (a.seq ?? a.ts))
+              .slice(0, 20);
           });
         } else if (update.type === 'orderbook_added' || update.type === 'orderbook_updated') {
           // Update order book level
@@ -66,7 +67,7 @@ export default function MarketDetailScreen() {
               const updated = [...filtered, level];
               // Sort by price descending (highest first) and take top 10
               return updated
-                .sort((a, b) => b.price - a.price)
+                .sort((a, b) => (b.seq ?? b.ts) - (a.seq ?? a.ts))
                 .slice(0, 10);
             });
           } else {
@@ -276,9 +277,7 @@ export default function MarketDetailScreen() {
 
         <TradesList trades={trades} />
 
-        <View style={styles.streamPlayerSection}>
-          <MarketStreamPlayer />
-        </View>
+       
       </ScrollView>
     </View>
   );
@@ -370,9 +369,5 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 16,
     color: theme.mediumEmphasis,
-  },
-  streamPlayerSection: {
-    marginTop: 16,
-    marginBottom: 24,
   },
 });

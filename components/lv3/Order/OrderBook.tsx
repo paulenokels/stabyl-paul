@@ -54,8 +54,9 @@ export function OrderBook({ bids, asks }: OrderBookProps) {
       
       <View style={styles.orderBookContainer}>
         <View style={styles.sideContainer}>
+        <Typography style={styles.sideLabel}>Bids</Typography>
+
           <View style={styles.sideHeader}>
-            <Typography style={styles.sideLabel}>Bids</Typography>
             <Typography style={styles.headerLabel}>Price</Typography>
             <Typography style={styles.headerLabel}>Size</Typography>
           </View>
@@ -76,8 +77,9 @@ export function OrderBook({ bids, asks }: OrderBookProps) {
         <View style={styles.divider} />
         
         <View style={styles.sideContainer}>
+        <Typography style={styles.sideLabel}>Asks</Typography>
+
           <View style={styles.sideHeader}>
-            <Typography style={styles.sideLabel}>Asks</Typography>
             <Typography style={styles.headerLabel}>Price</Typography>
             <Typography style={styles.headerLabel}>Size</Typography>
           </View>
@@ -135,6 +137,7 @@ const styles = StyleSheet.create({
   sideLabel: {
     fontWeight: '600',
     color: theme.mediumEmphasis,
+    fontSize:13
   },
   headerLabel: {
     fontSize: 12,

@@ -20,21 +20,6 @@ export interface Balance {
   locked: number;
 }
 
-export interface OrderBookLevel {
-  marketId: string;
-  side: 'bid' | 'ask';
-  price: number;
-  size: number;
-}
-
-export interface Trade {
-  id: string;
-  marketId: string;
-  price: number;
-  size: number;
-  side: 'buy' | 'sell';
-  ts: number;
-}
 
 export interface Order {
   id: string;
@@ -45,3 +30,23 @@ export interface Order {
   status: 'open' | 'cancelled' | 'filled';
   createdAt: number;
 }
+
+export interface OrderBookLevel {
+  marketId: string;
+  side: 'bid' | 'ask';
+  price: number;
+  size: number;
+  ts: number;
+  seq?: number;
+}
+
+export interface Trade {
+  id: string;
+  marketId: string;
+  price: number;
+  size: number;
+  side: 'buy' | 'sell';
+  ts: number;
+  seq?: number;
+}
+

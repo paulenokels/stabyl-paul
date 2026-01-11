@@ -3,8 +3,9 @@ import { View } from '@/components/lv1/View';
 import { Market, Order } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
 import { useState } from 'react';
-import { Alert, StyleSheet, TextInput } from 'react-native';
-import { PrimaryButton } from './Buttons';
+import { Alert, StyleSheet } from 'react-native';
+import { PrimaryButton } from '../../lv2/Buttons';
+import { PrimaryInput } from '../../lv2/PrimaryInput';
 
 interface OrderFormProps {
   markets: Array<Market>;
@@ -17,10 +18,12 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
   const [price, setPrice] = useState('');
   const [amount, setAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
+    setError(null);
     if (!selectedMarketId) {
-      Alert.alert('Error', 'Please select a market');
+      setError('Please select a market');
       return;
     }
 
@@ -28,15 +31,16 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
     const amountNum = parseFloat(amount);
 
     if (isNaN(priceNum) || priceNum <= 0) {
-      Alert.alert('Error', 'Please enter a valid price');
+      setError('Please enter a valid price');
       return;
     }
 
     if (isNaN(amountNum) || amountNum <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
+      setError('Please enter a valid amount');
       return;
     }
 
+    setError(null);
     setIsSubmitting(true);
     try {
       await onSubmit({
@@ -49,15 +53,43 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
       // Reset form
       setPrice('');
       setAmount('');
+      setError(null);
       Alert.alert('Success', 'Order placed successfully');
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to place order');
+      setError(error instanceof Error ? error.message : 'Failed to place order');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const selectedMarketData = markets.find(m => m.id === selectedMarketId);
+
+  // Filter input to only allow numbers and a single decimal point
+  const handlePriceChange = (text: string) => {
+    // Only allow numbers and a single decimal point
+    const numericValue = text.replace(/[^0-9.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = numericValue.split('.');
+    const filteredValue = parts.length > 2 
+      ? parts[0] + '.' + parts.slice(1).join('')
+      : numericValue;
+    
+    setPrice(filteredValue);
+  };
+
+  const handleAmountChange = (text: string) => {
+    // Only allow numbers and a single decimal point
+    const numericValue = text.replace(/[^0-9.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = numericValue.split('.');
+    const filteredValue = parts.length > 2 
+      ? parts[0] + '.' + parts.slice(1).join('')
+      : numericValue;
+    
+    setAmount(filteredValue);
+  };
 
   return (
     <View style={styles.container}>
@@ -69,12 +101,9 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
         <View style={styles.marketButtons}>
           {markets.map(market => (
            <PrimaryButton key={market.id}
-            style={[
-                styles.marketButton,
-                selectedMarketId === market.id && styles.marketButtonActive,
-            ]}
-            typographyStyle={market.id && styles.marketButtonTextActive}
-            onPress={() => setSelectedMarketId(market.id)} text={market.id} />
+            variant={selectedMarketId === market.id ? 'primary' : 'secondary'}
+            onPress={() => setSelectedMarketId(market.id)} text={market.id}
+             />
             ))}
           
         </View>
@@ -84,17 +113,10 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
       <View style={styles.section}>
         <Typography style={styles.label}>Side</Typography>
         <View style={styles.sideButtons}>
-            <PrimaryButton style={[
-                styles.sideButton,
-                side === 'buy' && styles.sideButtonBuy,
-              ]}
-              typographyStyle={side === 'buy' && styles.sideButtonTextActive}
+              <PrimaryButton 
+              variant={side === 'buy' ? 'primary' : 'secondary'}
               onPress={() => setSide('buy')} text="Buy" />
-          <PrimaryButton style={[
-                styles.sideButton,
-                side === 'sell' && styles.sideButtonSell,
-              ]}
-              typographyStyle={side === 'sell' && styles.sideButtonTextActive}
+          <PrimaryButton variant={side === 'sell' ? 'primary' : 'secondary'}
               onPress={() => setSide('sell')} text="Sell" />
           
         </View>
@@ -105,13 +127,11 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
         <Typography style={styles.label}>
           Price ({selectedMarketData?.quote || 'NGN'})
         </Typography>
-        <TextInput
-          style={styles.input}
+        <PrimaryInput
           value={price}
-          onChangeText={setPrice}
+          onChangeText={handlePriceChange}
           placeholder="0.00"
           keyboardType="decimal-pad"
-          placeholderTextColor={theme.placeholderColor}
         />
       </View>
 
@@ -120,22 +140,28 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
         <Typography style={styles.label}>
           Amount ({selectedMarketData?.base || 'USDT'})
         </Typography>
-        <TextInput
-          style={styles.input}
+        <PrimaryInput
           value={amount}
-          onChangeText={setAmount}
+          onChangeText={handleAmountChange}
           placeholder="0.0000"
           keyboardType="decimal-pad"
-          placeholderTextColor={theme.placeholderColor}
         />
       </View>
 
-      {/* Submit Button */}
-      <PrimaryButton
-        onPress={handleSubmit}
-        disabled={isSubmitting}
-        text={isSubmitting ? 'Placing Order...' : 'Place Order'}
-      />
+      {/* Error Message */}
+      {error && (
+        <View >
+          <Typography style={styles.errorText}>{error}</Typography>
+        </View>
+      )}
+
+      <View style={styles.submitButtonContainer}>
+        <PrimaryButton
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          text={isSubmitting ? 'Placing Order...' : 'Place Order'}
+        />
+      </View>
     </View>
   );
 }
@@ -161,65 +187,14 @@ const styles = StyleSheet.create({
     gap: 8,
     flexWrap: 'wrap',
   },
-  marketButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: theme.lightBorderColor,
-    backgroundColor: theme.secondaryBgColor,
-  },
-  marketButtonActive: {
-    borderColor: theme.primaryColor,
-    backgroundColor: theme.primaryColor + '20',
-  },
-  marketButtonText: {
-    fontSize: 14,
-    color: theme.textColor,
-  },
-  marketButtonTextActive: {
-    color: theme.primaryColor,
-    fontWeight: '600',
-  },
+ 
   sideButtons: {
     flexDirection: 'row',
     gap: 12,
   },
-  sideButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: theme.lightBorderColor,
-    backgroundColor: theme.secondaryBgColor,
-    alignItems: 'center',
-  },
-  sideButtonBuy: {
-    borderColor: '#00C853',
-    backgroundColor: '#00C85320',
-  },
-  sideButtonSell: {
-    borderColor: theme.errorColor,
-    backgroundColor: '#FF000020',
-  },
-  sideButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.textColor,
-  },
-  sideButtonTextActive: {
-    color: theme.textColor,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: theme.lightBorderColor,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: theme.textColor,
-    backgroundColor: theme.bgColor,
-  },
+  
+ 
+  
   submitButton: {
     paddingVertical: 16,
     borderRadius: 8,
@@ -236,9 +211,18 @@ const styles = StyleSheet.create({
   submitButtonDisabled: {
     opacity: 0.6,
   },
+  submitButtonContainer: {
+    flexDirection: 'row',
+  },
   submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  
+  errorText: {
+    fontSize: 14,
+    color: theme.errorColor,
+    textAlign: 'center',
   },
 });

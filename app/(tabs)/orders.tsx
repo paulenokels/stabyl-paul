@@ -1,7 +1,7 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
-import { OrderForm } from '@/components/lv2/OrderForm';
-import { OrderListItem } from '@/components/lv2/OrderListItem';
+import { OrderForm } from '@/components/lv3/Order/OrderForm';
+import { OrderListItem } from '@/components/lv3/Order/OrderListItem';
 import type { MarketWithPrice } from '@/database/repositories/markets';
 import { getMarketsWithPrice } from '@/database/repositories/markets';
 import { cancelOrder, createOrder, getOpenOrders } from '@/database/repositories/orders';
@@ -9,7 +9,7 @@ import type { Order } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet } from 'react-native';
 
 export default function OrdersScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -52,13 +52,30 @@ export default function OrdersScreen() {
   }, [loadData]);
 
   const handleCancelOrder = useCallback(async (orderId: string) => {
-    try {
-      await cancelOrder(orderId);
-      // Refresh orders list
-      await loadData();
-    } catch (error) {
-      console.error('Error cancelling order:', error);
-    }
+    Alert.alert(
+      'Cancel Order',
+      'Are you sure you want to cancel this order?',
+      [
+        {
+          text: 'No',
+          style: 'cancel',
+        },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await cancelOrder(orderId);
+              // Refresh orders list
+              await loadData();
+            } catch (error) {
+              console.error('Error cancelling order:', error);
+              Alert.alert('Error', 'Failed to cancel order. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   }, [loadData]);
 
   if (loading) {

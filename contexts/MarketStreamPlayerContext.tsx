@@ -119,11 +119,14 @@ class MarketStreamPlayerService {
             side: event.side,
             price: event.price,
             size: event.size,
+            seq: event.seq, 
+            ts: event.ts,
           };
 
           if (event.size === 0) {
             // Remove the level
             if (existingLevel) {
+                console.log('Deleting level', event.market, event.side, event.price);
               await database.runAsync(
                 'DELETE FROM orderBookLevels WHERE marketId = ? AND side = ? AND price = ?',
                 event.market,
@@ -135,6 +138,7 @@ class MarketStreamPlayerService {
           } else {
             // Insert or update the level
             if (existingLevel) {
+                console.log('Updating level', event.market, event.side, event.price);
               // Update existing level
               await database.runAsync(
                 'UPDATE orderBookLevels SET size = ? WHERE marketId = ? AND side = ? AND price = ?',
@@ -146,6 +150,7 @@ class MarketStreamPlayerService {
               updates.push({ type: 'orderbook_updated', data: orderBookLevel });
             } else {
               // Insert new level
+              console.log('Inserting level', event.market, event.side, event.price);
               await database.runAsync(
                 'INSERT INTO orderBookLevels (marketId, side, price, size) VALUES (?, ?, ?, ?)',
                 event.market,
@@ -164,7 +169,10 @@ class MarketStreamPlayerService {
           );
           const existingTrade = existingTrades.length > 0 ? existingTrades[0] : null;
 
+          if (existingTrade) console.log('Trade already exists', event.tradeId, event.market, event.price, event.size, event.side, event.ts);
+
           if (!existingTrade) {
+            console.log('Inserting trade', event.tradeId, event.market, event.price, event.size, event.side, event.ts);
             // Insert new trade (only if it doesn't exist)
             await database.runAsync(
               'INSERT INTO trades (id, marketId, price, size, side, ts) VALUES (?, ?, ?, ?, ?, ?)',
@@ -183,6 +191,7 @@ class MarketStreamPlayerService {
               size: event.size,
               side: event.side,
               ts: event.ts,
+              seq: event.seq,
             };
             updates.push({ type: 'trade', data: trade });
           }

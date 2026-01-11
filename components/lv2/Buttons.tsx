@@ -14,35 +14,41 @@ type Props = {
   touchableOpacityProps?: TouchableOpacityProps;
   icon?: React.ReactNode;
   iconStyle?: StyleProp<ViewStyle>;
+  variant?: 'primary' | 'secondary' | 'danger';
 };
 
 type ButtonProps = Props & ViewProps;
 
 export const PrimaryButton: React.FC<ButtonProps> = (props) => {
-  const { text, onPress, loading, disabled, icon, } = props;
+  const { text, onPress, loading, disabled, icon, variant = 'primary' } = props;
 
+  const backgroundColor = variant === 'primary' ? theme.primaryColor : variant === 'secondary' ? theme.bgColor : theme.errorColor;
+  const borderColor = variant === 'primary' ? 'transparent' : variant === 'secondary' ? theme.primaryColor : 'transparent';
+  const textColor = variant === 'primary' ? theme.bgColor : variant === 'secondary' ? theme.primaryColor : theme.bgColor;
   const styles = StyleSheet.create({
     btnWrapper: {
       flexDirection: 'row',
+      flex: 1,
       alignSelf: 'center',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: disabled ? theme?.disabledBgColor : theme.primaryColor,
-      width: '100%',
+      backgroundColor: backgroundColor,
       height: 50,
       opacity: disabled ? 0.5 : 1,
-      borderRadius: 50,
+      borderRadius: 10,
       marginBottom: 25,
       paddingBottom: 13,
       paddingTop: 13,
       paddingHorizontal: 15,
+      borderWidth: variant === 'primary' ? 0 : 1,
+      borderColor: borderColor,
       ...(props?.style as ViewStyle),
     },
     typography: {
       alignSelf: 'center',
       textAlign: 'center',
       fontSize: 15,
-      color: disabled ? theme?.borderColor : theme.textColor,
+      color: textColor,
       ...(props?.typographyStyle) as TextStyle,
     },
 
