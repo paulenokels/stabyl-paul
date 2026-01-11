@@ -19,7 +19,7 @@ interface MarketStreamPlayerContextValue {
   isLoading: boolean;
   startPlayback: () => Promise<void>;
   pausePlayback: () => void;
-  resumePlayback: () => void;
+  resumePlayback: () => Promise<void>;
   restartPlayback: () => Promise<void>;
   subscribeToUpdates: (callback: (updates: StreamUpdate[]) => void) => () => void;
 }
@@ -298,11 +298,13 @@ class MarketStreamPlayerService {
   }
 
   // Resume playback
-  resumePlayback() {
+  async resumePlayback() {
     if (this.status !== 'paused') return;
     this.paused = false;
     this.setStatus('playing');
-    this.processEvents();
+    // Ensure processing is false before resuming
+    this.processing = false;
+    await this.processEvents();
   }
 
   // Restart playback
@@ -321,6 +323,7 @@ class MarketStreamPlayerService {
     
     // Reset state
     this.cancelled = false;
+    this.processing = false;
     this.processedEvents = 0;
     this.eventQueue = [];
     this.notify();
@@ -369,8 +372,8 @@ export function MarketStreamPlayerProvider({ children }: { children: React.React
     playerService.pausePlayback();
   }, []);
 
-  const resumePlayback = useCallback(() => {
-    playerService.resumePlayback();
+  const resumePlayback = useCallback(async () => {
+    await playerService.resumePlayback();
   }, []);
 
   const restartPlayback = useCallback(async () => {

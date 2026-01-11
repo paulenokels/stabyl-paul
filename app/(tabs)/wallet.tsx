@@ -8,7 +8,7 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Switch } from 'react-native';
 
-const SMALL_BALANCE_THRESHOLD = 1.0; // Consider balances < 1.0 as small
+const SMALL_BALANCE_THRESHOLD = 1100.0; // Consider balances < 1.0 as small
 
 export default function WalletScreen() {
   const [balances, setBalances] = useState<Balance[]>([]);
@@ -78,18 +78,10 @@ export default function WalletScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Typography type="title" style={styles.title}>Wallet</Typography>
+        <Typography type="title" style={styles.title}>Wallets</Typography>
       </View>
 
-      <View style={styles.summarySection}>
-        <Typography style={styles.summaryLabel}>Total Balance</Typography>
-        <Typography type="title" style={styles.summaryValue}>
-          {totalValue.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </Typography>
-      </View>
+     
 
       <View style={styles.preferenceSection}>
         <View style={styles.preferenceRow}>
@@ -139,6 +131,7 @@ export default function WalletScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: 16,
   },
   header: {
     paddingHorizontal: 16,
@@ -148,26 +141,7 @@ const styles = StyleSheet.create({
   title: {
     marginBottom: 8,
   },
-  summarySection: {
-    padding: 16,
-    marginHorizontal: 16,
-    marginVertical: 16,
-    borderRadius: 12,
-    backgroundColor: theme.secondaryBgColor,
-    borderWidth: 1,
-    borderColor: theme.lightBorderColor,
-    alignItems: 'center',
-    gap: 8,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: theme.mediumEmphasis,
-    fontWeight: '600',
-  },
-  summaryValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-  },
+  
   preferenceSection: {
     paddingHorizontal: 16,
     paddingVertical: 12,

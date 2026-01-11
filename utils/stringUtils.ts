@@ -17,3 +17,17 @@ export function checkNumberInput(text: string): string {
   }
   return filteredValue;
 }
+
+export const formatPrice = (price: number) => {
+    return price.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  export const formatSize = (size: number) => {
+    return size.toLocaleString('en-US', {
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4,
+    });
+  };

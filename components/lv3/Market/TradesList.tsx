@@ -2,7 +2,7 @@ import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
 import type { Trade } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
-import { FlatList, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 interface TradesListProps {
   trades: Trade[];
@@ -32,12 +32,12 @@ export function TradesList({ trades }: TradesListProps) {
     });
   };
 
-  const renderTrade = ({ item }: { item: Trade }) => {
+  const renderTrade = (item: Trade) => {
     const isBuy = item.side === 'buy';
     const priceColor = isBuy ? '#00C853' : theme.errorColor;
 
     return (
-      <View style={styles.row}>
+      <View style={styles.row} key={item.id}>
         <View style={styles.timeColumn}>
           <Typography style={styles.time}>{formatTime(item.ts)}</Typography>
         </View>
@@ -77,16 +77,8 @@ export function TradesList({ trades }: TradesListProps) {
         </View>
         
         {trades?.length > 0 ? (
-            <FlatList
-            data={trades}
-            keyExtractor={(item) => item.id}
-            renderItem={renderTrade}
-            scrollEnabled={true}
-            maxToRenderPerBatch={10}
-            windowSize={10}
-          />
-        )  
-         : (
+          trades.map(renderTrade)
+        ) : (
           <View style={styles.emptyState}>
             <Typography style={styles.emptyText}>No trades yet</Typography>
           </View>

@@ -19,7 +19,7 @@ type Props = {
 
 type ButtonProps = Props & ViewProps;
 
-export const PrimaryButton: React.FC<ButtonProps> = (props) => {
+export const Button: React.FC<ButtonProps> = (props) => {
   const { text, onPress, loading, disabled, icon, variant = 'primary' } = props;
 
   const backgroundColor = variant === 'primary' ? theme.primaryColor : variant === 'secondary' ? theme.bgColor : theme.errorColor;

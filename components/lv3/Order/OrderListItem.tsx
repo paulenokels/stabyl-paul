@@ -3,7 +3,7 @@ import { View } from '@/components/lv1/View';
 import type { Order } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
 import { StyleSheet } from 'react-native';
-import { PrimaryButton } from '../../lv2/Buttons';
+import { Button } from '../../lv2/Button';
 
 interface OrderListItemProps {
   order: Order;
@@ -73,7 +73,7 @@ export function OrderListItem({ order, onCancel }: OrderListItemProps) {
         </View>
       </View>
 
-      <PrimaryButton
+      <Button
         onPress={onCancel}
         text="Cancel Order"
         variant='danger'

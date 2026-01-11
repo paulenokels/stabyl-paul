@@ -5,7 +5,7 @@ import { theme } from '@/theme/theme';
 import { checkNumberInput } from '@/utils/stringUtils';
 import { useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
-import { PrimaryButton } from '../../lv2/Buttons';
+import { Button } from '../../lv2/Button';
 import { PrimaryInput } from '../../lv2/PrimaryInput';
 
 interface OrderFormProps {
@@ -82,7 +82,7 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
         <Typography style={styles.label}>Market</Typography>
         <View style={styles.marketButtons}>
           {markets.map(market => (
-           <PrimaryButton key={market.id}
+           <Button key={market.id}
             variant={selectedMarketId === market.id ? 'primary' : 'secondary'}
             onPress={() => setSelectedMarketId(market.id)} text={market.id}
              />
@@ -95,10 +95,10 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
       <View style={styles.section}>
         <Typography style={styles.label}>Side</Typography>
         <View style={styles.sideButtons}>
-              <PrimaryButton 
+              <Button 
               variant={side === 'buy' ? 'primary' : 'secondary'}
               onPress={() => setSide('buy')} text="Buy" />
-          <PrimaryButton variant={side === 'sell' ? 'primary' : 'secondary'}
+          <Button variant={side === 'sell' ? 'primary' : 'secondary'}
               onPress={() => setSide('sell')} text="Sell" />
           
         </View>
@@ -138,7 +138,7 @@ export function OrderForm({ markets, onSubmit }: OrderFormProps) {
       )}
 
       <View style={styles.submitButtonContainer}>
-        <PrimaryButton
+        <Button
           onPress={handleSubmit}
           disabled={isSubmitting}
           text={isSubmitting ? 'Placing Order...' : 'Place Order'}

@@ -2,7 +2,8 @@ import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
 import type { OrderBookLevel } from '@/interfaces/database';
 import { theme } from '@/theme/theme';
-import { FlatList, StyleSheet } from 'react-native';
+import { formatPrice, formatSize } from '@/utils/stringUtils';
+import { StyleSheet } from 'react-native';
 
 interface OrderBookProps {
   bids: OrderBookLevel[];
@@ -10,22 +11,8 @@ interface OrderBookProps {
 }
 
 export function OrderBook({ bids, asks }: OrderBookProps) {
-  const formatPrice = (price: number) => {
-    return price.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
-
-  const formatSize = (size: number) => {
-    return size.toLocaleString('en-US', {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    });
-  };
-
-  const renderBid = ({ item }: { item: OrderBookLevel }) => (
-    <View style={styles.row}>
+    const renderBid = (item: OrderBookLevel, index: number) => (
+    <View style={styles.row} key={`bid-${item.price}-${index}`}>
       <Typography style={[styles.price, { color: theme.successColor }]}>
         {formatPrice(item.price)}
       </Typography>
@@ -35,8 +22,8 @@ export function OrderBook({ bids, asks }: OrderBookProps) {
     </View>
   );
 
-  const renderAsk = ({ item }: { item: OrderBookLevel }) => (
-    <View style={styles.row}>
+  const renderAsk = (item: OrderBookLevel, index: number) => (
+    <View style={styles.row} key={`ask-${item.price}-${index}`}>
       <Typography style={[styles.price, { color: theme.errorColor }]}>
         {formatPrice(item.price)}
       </Typography>
@@ -65,12 +52,7 @@ export function OrderBook({ bids, asks }: OrderBookProps) {
               <Typography style={styles.emptyText}>No bids</Typography>
             </View>
           ) : (
-            <FlatList
-              data={bids}
-              keyExtractor={(item, index) => `bid-${item.price}-${index}`}
-              renderItem={renderBid}
-              scrollEnabled={false}
-            />
+            bids.map(renderBid)
           )}
         </View>
         
@@ -88,12 +70,7 @@ export function OrderBook({ bids, asks }: OrderBookProps) {
               <Typography style={styles.emptyText}>No asks</Typography>
             </View>
           ) : (
-            <FlatList
-              data={asks}
-              keyExtractor={(item, index) => `ask-${item.price}-${index}`}
-              renderItem={renderAsk}
-              scrollEnabled={false}
-            />
+            asks.map(renderAsk)
           )}
         </View>
       </View>
