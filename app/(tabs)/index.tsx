@@ -92,7 +92,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.listContent}
       />
 
-<View>
+    <View>
         <MarketStreamPlayer />
       </View>
     </View>

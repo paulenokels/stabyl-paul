@@ -36,7 +36,6 @@ class MarketStreamPlayerService {
   private processing = false;
   private paused = false;
   private cancelled = false;
-  private currentSeq = 0;
   private batchProcessingTimeout: NodeJS.Timeout | null = null;
   private subscribers: Set<() => void> = new Set();
   private updateSubscribers: Set<(updates: StreamUpdate[]) => void> = new Set();
@@ -236,12 +235,12 @@ class MarketStreamPlayerService {
       try {
         const updates = await this.processEventBatch(database, batch);
         
-        this.currentSeq = batch[batch.length - 1]?.seq || this.currentSeq;
         this.processedEvents += batch.length;
         this.notify();
         this.notifyUpdates(updates);
         
         // Schedule next batch with delay
+        // @ts-ignore
         this.batchProcessingTimeout = setTimeout(() => {
           processNextBatch();
         }, DELAY_MS);
@@ -271,7 +270,6 @@ class MarketStreamPlayerService {
         this.eventQueue = [...events];
         this.totalEvents = events.length;
         this.processedEvents = 0;
-        this.currentSeq = 0;
       }
       
       this.setStatus('playing');

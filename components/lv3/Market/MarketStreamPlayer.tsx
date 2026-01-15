@@ -1,32 +1,13 @@
 import { Typography } from '@/components/lv1/Typography';
 import { View } from '@/components/lv1/View';
-import { useMarketStreamPlayer, type PlaybackStatus } from '@/contexts/MarketStreamPlayerContext';
+import { useMarketStreamPlayer } from '@/contexts/MarketStreamPlayerContext';
 import { theme } from '@/theme/theme';
-import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 
-interface MarketStreamPlayerProps {
-  onStatusChange?: (status: PlaybackStatus) => void;
-  onProgress?: (processed: number, total: number) => void;
-}
 
-export function MarketStreamPlayer({ 
-  onStatusChange, 
-  onProgress,
-}: MarketStreamPlayerProps) {
+export function MarketStreamPlayer() {
   const player = useMarketStreamPlayer();
 
-  // Notify parent of status changes
-  useEffect(() => {
-    onStatusChange?.(player.status);
-  }, [player.status, onStatusChange]);
-
-  // Notify parent of progress
-  useEffect(() => {
-    if (player.totalEvents > 0) {
-      onProgress?.(player.processedEvents, player.totalEvents);
-    }
-  }, [player.processedEvents, player.totalEvents, onProgress]);
 
   const getStatusLabel = () => {
     switch (player.status) {
